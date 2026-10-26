@@ -6,9 +6,9 @@ const router: IRouter = Router();
 const isoPath = resolve(
   process.cwd(),
   "../../",
-  "maxnet-os-linuxmint-22.3-cinnamon-64bit.iso",
+  "maxos-0.4.0-cinnamon-64bit.iso",
 );
-const isoDownloadName = "maxnet-os-linuxmint-22.3-cinnamon-64bit.iso";
+const isoDownloadName = "maxos-0.4.0-cinnamon-64bit.iso";
 
 router.get("/download/maxnet-os.iso", (req, res, next) => {
   if (process.env.NODE_ENV !== "development") {

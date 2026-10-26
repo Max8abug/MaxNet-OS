@@ -1,0 +1,16 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "T6LZlXrm9zBT2F5WTBBgr"
+uri = "file://generated-artifacts/maxnet-remaster/boot-icon-preview/plymouth-preview.png"
+type = "image"
+title = "MaxOS boot icon preview"
+description = "Preview of the Plymouth startup screen using your image as the boot icon."
+logical_id = "679833be-591a-4dba-8a28-6a236cfd7a5e"
+content_hash = "sha256:b30b24937984d12b8d0b5cb7db3516a55373638a9d8bf7745fb91d153963aaf6"
+size = 72606
+mtime_ms = 1793050519314
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:7485171a-06be-4337-9fbc-830e25d8013b/679833be-591a-4dba-8a28-6a236cfd7a5e/ff011d81-1a20-46db-881c-c07bbc67b44a"
+storage_version_token = "1793050978887973"
+content_type = "image/png"

@@ -1,3 +1,4 @@
 - [MaxNet repo ownership](maxnet-repo-ownership.md) — User owns MaxNet's GitHub repo and allows source changes when needed for this integration.
 - [MaxNet OS offline login](maxnet-os-auth.md) — Keep the Mint login credential local and offline-capable; MaxNet account sync is for settings, not OS credentials.
-- [Mint ISO remastering in Replit](mint-iso-remaster.md) — Keep extraction, staging, and repacking inside one fakeroot session to retain filesystem metadata.
+- [MaxNet OS theme identity](maxnet-os-theme-identity.md) — Preserve the website's eight theme IDs as the OS choices and offer a local first-use theme picker.
+- [Mint ISO remastering in Replit](mint-iso-remaster.md) — Preserve fakeroot metadata, run long ISO writes in managed processes, and remove stale rootfs staging before packaging.
