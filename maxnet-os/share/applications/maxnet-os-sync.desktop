@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=MaxNet OS Theme Sync
+Comment=Confirm MaxNet account theme changes for this computer
+Exec=maxnet-os --sync-theme %u
+Icon=maxnet-theme
+Terminal=false
+NoDisplay=true
+MimeType=x-scheme-handler/maxnet-os;
+Categories=Settings;

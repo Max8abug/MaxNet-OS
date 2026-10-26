@@ -16,6 +16,7 @@ Usage:
   maxnet-os configure
   maxnet-os --choose-theme
   maxnet-os --theme THEME_ID
+  maxnet-os --sync-theme URI
   maxnet-os --restore-system-theme
 
 Features: home, signin, chat, forum, dms, network, network-people,
@@ -130,6 +131,30 @@ choose_system_theme() {
   set_system_theme "$selected"
 }
 
+sync_system_theme() {
+  local request="$1"
+  local selected="${request#maxnet-os://theme/}"
+  if [[ "$request" != maxnet-os://theme/* ]] || ! validate_theme "$selected"; then
+    printf '%s\n' "Rejected an invalid MaxNet OS theme sync request." >&2
+    exit 2
+  fi
+  command -v zenity >/dev/null 2>&1 || {
+    printf '%s\n' "Install zenity to confirm theme changes from MaxNet." >&2
+    exit 1
+  }
+  if zenity --question \
+    --title="Sync MaxNet theme" \
+    --text="Apply the signed-in MaxNet account's $selected theme to this Linux Mint desktop?"; then
+    set_system_theme "$selected"
+  fi
+}
+
+register_sync_handler() {
+  if command -v xdg-mime >/dev/null 2>&1; then
+    xdg-mime default maxnet-os-sync.desktop x-scheme-handler/maxnet-os >/dev/null 2>&1 || true
+  fi
+}
+
 configure_url() {
   command -v zenity >/dev/null 2>&1 || {
     printf '%s\n' "Install zenity to configure MaxNet from the desktop." >&2
@@ -217,23 +242,20 @@ open_feature() {
     exit 1
   fi
 
-  local url="${base_url%/}/"
+  local url="${base_url%/}/?maxnet-os=1"
   if [[ "$feature" != "home" ]]; then
-    url+="?maxnet-feature=$feature"
+    url+="&maxnet-feature=$feature"
   fi
   if [[ -r "$theme_config" ]]; then
     theme_slug
-    if [[ "$feature" == "home" ]]; then
-      url+="?maxnet-theme=$THEME_ID"
-    else
-      url+="&maxnet-theme=$THEME_ID"
-    fi
+    url+="&maxnet-theme=$THEME_ID"
   fi
   if (( PRINT_URL )); then
     printf '%s\n' "$url"
     return
   fi
 
+  register_sync_handler
   local profile="${XDG_DATA_HOME:-$HOME/.local/share}/maxnet-os/chromium"
   local browser
   for browser in chromium chromium-browser google-chrome-stable google-chrome brave-browser; do
@@ -272,6 +294,11 @@ while (($#)); do
     --theme)
       (($# >= 2)) || { usage >&2; exit 2; }
       set_system_theme "$2"
+      exit 0
+      ;;
+    --sync-theme)
+      (($# >= 2)) || { usage >&2; exit 2; }
+      sync_system_theme "$2"
       exit 0
       ;;
     --apply-system-theme)
