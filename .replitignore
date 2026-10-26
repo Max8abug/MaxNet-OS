@@ -4,3 +4,5 @@
 # No need to store the pnpm store twice.
 .local
 generated-artifacts/
+/maxnet-os-linuxmint-22.3-cinnamon-64bit.iso
+/maxnet-os-linuxmint-22.3-cinnamon-64bit.iso.sha256
