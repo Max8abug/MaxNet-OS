@@ -4,6 +4,8 @@ set -euo pipefail
 ISO_TREE="${1:?Usage: brand-iso-tree.sh ISO_TREE VERSION}"
 VERSION="${2:?Usage: brand-iso-tree.sh ISO_TREE VERSION}"
 PACKAGE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+WORK="$(mktemp -d)"
+trap 'rm -rf "$WORK"' EXIT
 
 python3 - "$ISO_TREE" "$VERSION" <<'PY'
 from pathlib import Path
@@ -52,6 +54,10 @@ command -v magick >/dev/null 2>&1 || {
   printf 'Required branding tool not found: magick\n' >&2
   exit 1
 }
+if [[ ! -f "$PACKAGE_ROOT/share/branding/boot-icon.png" ]]; then
+  printf 'MaxOS boot icon is missing: %s\n' "$PACKAGE_ROOT/share/branding/boot-icon.png" >&2
+  exit 1
+fi
 SPLASH640="$ISO_TREE/isolinux/splash.png"
 SPLASH800="$ISO_TREE/isolinux/splash800x600.png"
 if [[ ! -f "$SPLASH640" ]]; then
@@ -62,9 +68,28 @@ chmod u+w "$SPLASH640"
 if [[ -f "$SPLASH800" ]]; then
   chmod u+w "$SPLASH800"
 fi
-magick -background none "$PACKAGE_ROOT/share/branding/maxos-iso-splash.svg" \
-  -resize 640x480! -alpha off -depth 8 -define png:color-type=2 "$SPLASH640"
-magick -background none "$PACKAGE_ROOT/share/branding/maxos-iso-splash.svg" \
-  -resize 800x600! -alpha off -depth 8 -define png:color-type=2 "$SPLASH800"
+
+render_splash() {
+  local output="$1"
+  local dimensions="$2"
+  local icon_size="$3"
+  local icon_x="$4"
+  local icon_y="$5"
+
+  magick -background none "$PACKAGE_ROOT/share/branding/maxos-iso-splash.svg" \
+    -resize "${dimensions}!" -alpha off -depth 8 -define png:color-type=2 \
+    "$WORK/splash-base.png"
+  magick "$PACKAGE_ROOT/share/branding/boot-icon.png" -trim +repage \
+    -resize "${icon_size}x${icon_size}" -background none -gravity center \
+    -extent "${icon_size}x${icon_size}" "$WORK/boot-icon.png"
+  magick "$WORK/splash-base.png" "$WORK/boot-icon.png" \
+    -gravity northwest -geometry "+${icon_x}+${icon_y}" -compose over -composite \
+    -alpha off -depth 8 -define png:color-type=2 "$output"
+}
+
+render_splash "$SPLASH640" 640x480 70 278 163
+if [[ -f "$SPLASH800" ]]; then
+  render_splash "$SPLASH800" 800x600 88 348 204
+fi
 
 printf 'Applied MaxOS ISO labels under %s\n' "$ISO_TREE"

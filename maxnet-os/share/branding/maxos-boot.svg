@@ -24,8 +24,6 @@
     <path d="m42 4 9 9m0-9-9 9" stroke="#222" stroke-width="1.5"/>
   </g>
   <rect x="28" y="67" width="82" height="82" rx="10" fill="#10262b" stroke="#36d6c0" stroke-width="2"/>
-  <path d="M42 128V89h8l20 20 20-20h8v39H86v-21l-16 16-16-16v21z" fill="#36d6c0"/>
-  <circle cx="94" cy="82" r="4" fill="#f4bd59"/>
   <text x="132" y="99" fill="#1d292b" font-family="DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="700">Your MaxNet desktop is starting</text>
   <text x="132" y="124" fill="#293638" font-family="DejaVu Sans, Arial, sans-serif" font-size="13">Preparing your apps, theme, and local settings...</text>
   <rect x="22" y="163" width="710" height="23" fill="#d5d5d5" stroke="#777"/>

@@ -20,7 +20,12 @@ test -d "$ROOTFS"
 test -d "$PLYMOUTH_DIR"
 
 magick -background none -density 144 "$BRANDING_DIR/maxos-boot.svg" \
-  -resize 560x192 "$WORK/maxos-boot.png"
+  -resize 560x192 "$WORK/maxos-boot-base.png"
+magick "$BRANDING_DIR/boot-icon.png" -trim +repage -resize 50x50 \
+  -background none -gravity center -extent 50x50 "$WORK/boot-icon.png"
+magick "$WORK/maxos-boot-base.png" "$WORK/boot-icon.png" \
+  -gravity northwest -geometry +26+54 -compose over -composite \
+  "$WORK/maxos-boot.png"
 magick "$PACKAGE_ROOT/share/backgrounds/maxnet-os.svg" \
   -quality 88 "$WORK/maxos-login.jpg"
 

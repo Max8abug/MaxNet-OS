@@ -30,8 +30,6 @@
     <path d="m46 5 10 13m0-13L46 18" stroke="#222" stroke-width="1.5"/>
   </g>
   <rect x="340" y="196" width="104" height="104" rx="14" fill="#10262b" stroke="#36d6c0" stroke-width="3"/>
-  <path d="M358 274v-54h11l23 24 23-24h11v54h-17v-29l-17 18-17-18v29z" fill="#36d6c0"/>
-  <circle cx="426" cy="212" r="5" fill="#f4bd59"/>
   <text x="470" y="236" fill="#162c30" font-family="DejaVu Sans, Arial, sans-serif" font-size="26" font-weight="700">MaxNet OS</text>
   <text x="470" y="270" fill="#34484a" font-family="DejaVu Sans, Arial, sans-serif" font-size="14">Apps, themes, and community</text>
   <rect x="316" y="373" width="392" height="42" fill="#d4d4d4" stroke="#777"/>
