@@ -1,0 +1,98 @@
+diff --git a/artifacts/photo-desktop/src/App.tsx b/artifacts/photo-desktop/src/App.tsx
+--- a/artifacts/photo-desktop/src/App.tsx
++++ b/artifacts/photo-desktop/src/App.tsx
+@@ -3,5 +3,5 @@
+ import { Desktop } from "@/components/Desktop";
+ import { Taskbar } from "@/components/Taskbar";
+ import { pingVisit } from "@/lib/api";
+-import { useDesktopStore } from "@/store";
++import { useDesktopStore, type WindowData } from "@/store";
+ import { ThemeProvider } from "@/lib/theme";
+@@ -21,6 +21,36 @@
+   const addWindow = useDesktopStore((s) => s.addWindow);
+   const user = useAuth((s) => s.user);
+   const timeZone = useTimeZone();
+   const isMobile = useIsMobile();
+   const { profileOpen, setProfileOpen } = useProfileDialogStore();
+ 
++  // Desktop launchers pass an allowlisted feature intent in the query string.
++  // Consume it once so refreshes do not keep reopening the same window.
++  useEffect(() => {
++    const params = new URLSearchParams(window.location.search);
++    const intent = params.get("maxnet-feature");
++    if (!intent) return;
++    params.delete("maxnet-feature");
++    const remainingQuery = params.toString();
++    const cleanUrl = `${window.location.pathname}${remainingQuery ? `?${remainingQuery}` : ""}${window.location.hash}`;
++    window.history.replaceState(window.history.state, "", cleanUrl);
++
++    if (intent === "signin") {
++      window.requestAnimationFrame(() => {
++        window.dispatchEvent(new CustomEvent("maxnet:open-login"));
++      });
++      return;
++    }
++
++    const windowIntents: Record<string, Partial<WindowData>> = {
++      chat: { type: "chat", title: "MaxNet Chat", width: 420, height: 500 },
++      forum: { type: "forum", title: "MaxNet Forums", width: 600, height: 520 },
++      eaglercraft: { type: "eaglercraft", title: "Eaglercraft", width: 960, height: 640 },
++      network: { type: "browser", browserView: "feed", title: "the Network", width: 900, height: 640 },
++      "network-wiki": { type: "browser", browserView: "wiki", title: "MaxNet Wiki", width: 900, height: 640 },
++      theme: { type: "settings", title: "Display Theme Settings", width: 480, height: 520 },
++    };
++    const launchWindow = windowIntents[intent];
++    if (launchWindow) addWindow(page, launchWindow);
++  }, [addWindow, page]);
++
+   useEffect(() => {
+     setProfileOpen(false);
+   }, [user?.id, setProfileOpen]);
+diff --git a/artifacts/photo-desktop/src/store.ts b/artifacts/photo-desktop/src/store.ts
+--- a/artifacts/photo-desktop/src/store.ts
++++ b/artifacts/photo-desktop/src/store.ts
+@@ -31,5 +31,7 @@
+   dmPeer?: string;
+   gameId?: NewGamePortId;
+   gamePreview?: boolean;
++  // The OS launcher can select a specific tab in the Network window.
++  browserView?: "feed" | "people" | "wiki";
+ }
+ 
+diff --git a/artifacts/photo-desktop/src/components/UserBrowser.tsx b/artifacts/photo-desktop/src/components/UserBrowser.tsx
+--- a/artifacts/photo-desktop/src/components/UserBrowser.tsx
++++ b/artifacts/photo-desktop/src/components/UserBrowser.tsx
+@@ -10,3 +10,4 @@
+ type UserBrowserProps = {
+   page?: string;
++  initialView?: "feed" | "people" | "wiki";
+ };
+@@ -131,5 +132,5 @@
+-export function UserBrowser({ page = "/" }: UserBrowserProps) {
++export function UserBrowser({ page = "/", initialView }: UserBrowserProps) {
+   const [users, setUsers] = useState<PublicUser[]>([]);
+   const [query, setQuery] = useState("");
+   const [sortMode, setSortMode] = useState<"popular" | "alphabetical">("popular");
+-  const [activeView, setActiveView] = useState<"feed" | "people" | "wiki">("feed");
++  const [activeView, setActiveView] = useState<"feed" | "people" | "wiki">(initialView ?? "feed");
+diff --git a/artifacts/photo-desktop/src/components/Window.tsx b/artifacts/photo-desktop/src/components/Window.tsx
+--- a/artifacts/photo-desktop/src/components/Window.tsx
++++ b/artifacts/photo-desktop/src/components/Window.tsx
+@@ -358,3 +358,3 @@
+         {w.type === 'userpage' && !isEditing && <UserPage username={w.username || ''} />}
+-        {w.type === 'browser' && !isEditing && <UserBrowser page={page} />}
++        {w.type === 'browser' && !isEditing && <UserBrowser page={page} initialView={w.browserView} />}
+         {w.type === 'mypage' && !isEditing && <MyPageRouter />}
+diff --git a/artifacts/photo-desktop/src/components/Taskbar.tsx b/artifacts/photo-desktop/src/components/Taskbar.tsx
+--- a/artifacts/photo-desktop/src/components/Taskbar.tsx
++++ b/artifacts/photo-desktop/src/components/Taskbar.tsx
+@@ -36,4 +36,9 @@
+   const [dmUnread, setDmUnread] = useState(0);
+   const [chatUnread, setChatUnread] = useState(0);
+   useEffect(() => { void refresh(); void refreshRanks(); }, [refresh, refreshRanks]);
++  useEffect(() => {
++    const openLogin = () => setLoginOpen(true);
++    window.addEventListener("maxnet:open-login", openLogin);
++    return () => window.removeEventListener("maxnet:open-login", openLogin);
++  }, []);
+   // Full branding/settings still load at startup and on focus, independently

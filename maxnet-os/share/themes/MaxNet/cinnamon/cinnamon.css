@@ -1,0 +1,49 @@
+#panel {
+  background-color: rgba(13, 24, 28, 0.97);
+  color: #e8f2f1;
+  border-top: 1px solid #36d6c0;
+  box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.24);
+}
+
+#panel .panel-button {
+  color: #d7e7e5;
+  border-radius: 5px;
+}
+
+#panel .panel-button:hover,
+#panel .panel-button:active,
+#panel .panel-button:checked {
+  color: #071a18;
+  background-color: #36d6c0;
+}
+
+.menu,
+.popup-menu-content {
+  color: #e8f2f1;
+  background-color: #132126;
+  border: 1px solid #31565c;
+  border-radius: 8px;
+}
+
+.menu-item,
+.popup-menu-item {
+  color: #e8f2f1;
+}
+
+.menu-item:hover,
+.popup-menu-item:hover {
+  color: #071a18;
+  background-color: #36d6c0;
+}
+
+.popup-separator-menu-item .popup-separator-menu-item-separator {
+  background-color: #31565c;
+}
+
+.notification,
+.calendar,
+.workspace-switcher {
+  color: #e8f2f1;
+  background-color: #132126;
+  border: 1px solid #31565c;
+}

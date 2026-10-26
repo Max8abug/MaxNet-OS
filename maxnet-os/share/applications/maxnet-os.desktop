@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=MaxNet OS
+GenericName=MaxNet desktop
+Comment=Open the MaxNet social desktop
+Exec=maxnet-os --feature home
+Icon=maxnet
+Terminal=false
+Categories=Network;WebBrowser;
+StartupWMClass=maxnet-os

@@ -1,0 +1,72 @@
+@define-color theme_bg_color #132126;
+@define-color theme_fg_color #e8f2f1;
+@define-color theme_base_color #0d181c;
+@define-color theme_text_color #e8f2f1;
+@define-color theme_selected_bg_color #18b9a5;
+@define-color theme_selected_fg_color #081816;
+@define-color accent_color #36d6c0;
+@define-color window_bg_color #132126;
+@define-color window_fg_color #e8f2f1;
+@define-color view_bg_color #0d181c;
+@define-color view_fg_color #e8f2f1;
+@define-color headerbar_bg_color #172a30;
+@define-color headerbar_fg_color #e8f2f1;
+@define-color card_bg_color #1a3036;
+
+* {
+  -GtkWidget-focus-line-width: 1;
+  -GtkWidget-focus-padding: 2;
+}
+
+window,
+dialog {
+  background-color: @theme_bg_color;
+  color: @theme_fg_color;
+}
+
+headerbar,
+toolbar {
+  background-image: none;
+  background-color: #172a30;
+  color: @theme_fg_color;
+  border-color: #2c5157;
+}
+
+button {
+  color: @theme_fg_color;
+  background-image: linear-gradient(to bottom, #244148, #1b343a);
+  border: 1px solid #3a6569;
+  border-radius: 5px;
+  box-shadow: inset 0 1px rgba(255,255,255,.08);
+}
+
+button:hover {
+  background-image: linear-gradient(to bottom, #2b5659, #1c4144);
+}
+
+button:checked,
+button:active {
+  color: #061816;
+  background-image: none;
+  background-color: @accent_color;
+}
+
+entry,
+textview text,
+spinbutton,
+combobox box {
+  color: @theme_text_color;
+  background-color: @theme_base_color;
+  border-color: #31565c;
+  caret-color: @accent_color;
+}
+
+selection {
+  background-color: @theme_selected_bg_color;
+  color: @theme_selected_fg_color;
+}
+
+scale highlight,
+progressbar progress {
+  background-color: @accent_color;
+}

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b171b"/>
+      <stop offset=".55" stop-color="#12353a"/>
+      <stop offset="1" stop-color="#0b1b24"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop stop-color="#38d6c2" stop-opacity=".3"/>
+      <stop offset="1" stop-color="#38d6c2" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <circle cx="1460" cy="300" r="620" fill="url(#glow)"/>
+  <path d="M0 870 470 620l370 190 380-320 700 310v280H0z" fill="#0a2429" opacity=".82"/>
+  <path d="m0 918 465-248 375 192 380-322 700 312" fill="none" stroke="#36d6c0" stroke-opacity=".38" stroke-width="2"/>
+  <g fill="#f4bd59" opacity=".85">
+    <circle cx="465" cy="670" r="5"/><circle cx="840" cy="862" r="5"/>
+    <circle cx="1220" cy="540" r="5"/><circle cx="1920" cy="852" r="5"/>
+  </g>
+  <g fill="none" stroke="#53b9b1" stroke-opacity=".12">
+    <path d="M1120 0v1080M1220 0v1080M1320 0v1080M1420 0v1080M1520 0v1080M1620 0v1080M1720 0v1080M1820 0v1080"/>
+    <path d="M1000 120h920M1000 220h920M1000 320h920M1000 420h920M1000 520h920M1000 620h920M1000 720h920M1000 820h920M1000 920h920"/>
+  </g>
+  <g transform="translate(130 160)">
+    <rect width="96" height="96" rx="22" fill="#10262b" stroke="#36d6c0" stroke-opacity=".6" stroke-width="2"/>
+    <path d="M21 66V30h11l16 18 16-18h11v36H63V46L48 60 33 46v20z" fill="#36d6c0"/>
+    <circle cx="73" cy="21" r="5" fill="#f4bd59"/>
+  </g>
+</svg>

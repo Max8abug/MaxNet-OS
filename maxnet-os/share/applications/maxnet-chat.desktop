@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=MaxNet Chat
+Comment=Open the MaxNet chatroom
+Exec=maxnet-os --feature chat
+Icon=maxnet-chat
+Terminal=false
+Categories=Network;Chat;

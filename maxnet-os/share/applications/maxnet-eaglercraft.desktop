@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Eaglercraft
+Comment=Play Eaglercraft through MaxNet
+Exec=maxnet-os --feature eaglercraft
+Icon=maxnet-eaglercraft
+Terminal=false
+Categories=Game;

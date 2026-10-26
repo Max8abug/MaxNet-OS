@@ -1,0 +1,209 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+APP_NAME="MaxNet OS"
+DEFAULT_URL="https://moonbat.ddns.net"
+FEATURE=""
+PRINT_URL=0
+
+usage() {
+  cat <<'EOF'
+MaxNet OS desktop launcher
+
+Usage:
+  maxnet-os [--feature NAME]
+  maxnet-os configure
+  maxnet-os --apply-system-theme
+  maxnet-os --restore-system-theme
+
+Features: home, signin, chat, forum, network, network-wiki, eaglercraft, theme
+EOF
+}
+
+config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/maxnet-os"
+user_config="$config_dir/settings.conf"
+system_config="/etc/maxnet-os/settings.conf"
+base_url="${MAXNET_URL:-}"
+
+if [[ -z "$base_url" ]]; then
+  if [[ -r "$user_config" ]]; then
+    IFS= read -r base_url < "$user_config" || true
+  elif [[ -r "$system_config" ]]; then
+    IFS= read -r base_url < "$system_config" || true
+  else
+    base_url="$DEFAULT_URL"
+  fi
+fi
+
+validate_url() {
+  python3 - "$1" <<'PY'
+from urllib.parse import urlsplit
+import sys
+
+value = sys.argv[1].strip()
+try:
+    parsed = urlsplit(value)
+    valid = (
+        parsed.scheme == "https"
+        and bool(parsed.hostname)
+        and parsed.username is None
+        and parsed.password is None
+        and not parsed.query
+        and not parsed.fragment
+    )
+except ValueError:
+    valid = False
+if not valid:
+    raise SystemExit(1)
+PY
+}
+
+configure_url() {
+  command -v zenity >/dev/null 2>&1 || {
+    printf '%s\n' "Install zenity to configure MaxNet from the desktop." >&2
+    exit 1
+  }
+  local entered
+  entered="$(zenity --entry \
+    --title="MaxNet OS connection" \
+    --text="Enter the HTTPS address of your MaxNet server:" \
+    --entry-text="$base_url")" || exit 0
+  entered="${entered%/}"
+  if ! validate_url "$entered"; then
+    zenity --error --title="Invalid address" \
+      --text="Use an HTTPS address with no username, password, query, or fragment." || true
+    exit 1
+  fi
+  install -d -m 700 "$config_dir"
+  (umask 077; printf '%s\n' "$entered" > "$user_config")
+  zenity --info --title="MaxNet OS" --text="MaxNet server saved." || true
+}
+
+apply_system_theme() {
+  command -v gsettings >/dev/null 2>&1 || {
+    printf '%s\n' "Cinnamon settings are unavailable; run this on a Cinnamon desktop." >&2
+    exit 1
+  }
+  local backup="$config_dir/original-theme"
+  install -d -m 700 "$config_dir"
+  if [[ ! -e "$backup" ]]; then
+    {
+      printf 'gtk-theme=%s\n' "$(gsettings get org.cinnamon.desktop.interface gtk-theme)"
+      printf 'cinnamon-theme=%s\n' "$(gsettings get org.cinnamon.theme name)"
+      printf 'wallpaper=%s\n' "$(gsettings get org.cinnamon.desktop.background picture-uri)"
+    } > "$backup"
+    chmod 600 "$backup"
+  fi
+  gsettings set org.cinnamon.desktop.interface gtk-theme "MaxNet"
+  gsettings set org.cinnamon.theme name "MaxNet"
+  gsettings set org.cinnamon.desktop.background picture-uri \
+    "file:///usr/share/backgrounds/maxnet-os.svg"
+  printf '%s\n' "MaxNet OS theme applied. Use --restore-system-theme to restore the previous settings."
+}
+
+restore_system_theme() {
+  local backup="$config_dir/original-theme"
+  [[ -r "$backup" ]] || {
+    printf '%s\n' "No saved Cinnamon theme settings were found." >&2
+    exit 1
+  }
+  local gtk_theme="" cinnamon_theme="" wallpaper=""
+  while IFS='=' read -r key value; do
+    case "$key" in
+      gtk-theme) gtk_theme="$value" ;;
+      cinnamon-theme) cinnamon_theme="$value" ;;
+      wallpaper) wallpaper="$value" ;;
+    esac
+  done < "$backup"
+  [[ -n "$gtk_theme" && -n "$cinnamon_theme" && -n "$wallpaper" ]] || {
+    printf '%s\n' "Saved theme settings are incomplete; refusing to change desktop settings." >&2
+    exit 1
+  }
+  gsettings set org.cinnamon.desktop.interface gtk-theme "$gtk_theme"
+  gsettings set org.cinnamon.theme name "$cinnamon_theme"
+  gsettings set org.cinnamon.desktop.background picture-uri "$wallpaper"
+  rm -f "$backup"
+  printf '%s\n' "Previous Cinnamon theme settings restored."
+}
+
+open_feature() {
+  local feature="$1"
+  case "$feature" in
+    home|signin|chat|forum|network|network-wiki|eaglercraft|theme) ;;
+    *)
+      printf 'Unknown MaxNet feature: %s\n' "$feature" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+  if ! validate_url "$base_url"; then
+    printf 'Invalid MaxNet address in configuration: %s\n' "$base_url" >&2
+    printf '%s\n' "Run: maxnet-os configure" >&2
+    exit 1
+  fi
+
+  local url="${base_url%/}/"
+  if [[ "$feature" != "home" ]]; then
+    url+="?maxnet-feature=$feature"
+  fi
+  if (( PRINT_URL )); then
+    printf '%s\n' "$url"
+    return
+  fi
+
+  local profile="${XDG_DATA_HOME:-$HOME/.local/share}/maxnet-os/chromium"
+  local browser
+  for browser in chromium chromium-browser google-chrome-stable google-chrome brave-browser; do
+    if command -v "$browser" >/dev/null 2>&1; then
+      install -d -m 700 "$profile"
+      exec "$browser" --app="$url" --new-window \
+        --user-data-dir="$profile" --class=maxnet-os --name="MaxNet OS"
+    fi
+  done
+
+  if command -v firefox >/dev/null 2>&1; then
+    exec firefox --new-window "$url"
+  fi
+  if command -v xdg-open >/dev/null 2>&1; then
+    exec xdg-open "$url"
+  fi
+  printf '%s\n' "No supported browser was found. Install Chromium, Firefox, or xdg-utils." >&2
+  exit 1
+}
+
+while (($#)); do
+  case "$1" in
+    configure)
+      configure_url
+      exit 0
+      ;;
+    --feature)
+      (($# >= 2)) || { usage >&2; exit 2; }
+      FEATURE="$2"
+      shift 2
+      ;;
+    --apply-system-theme)
+      apply_system_theme
+      exit 0
+      ;;
+    --restore-system-theme)
+      restore_system_theme
+      exit 0
+      ;;
+    --print-url)
+      PRINT_URL=1
+      shift
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    *)
+      printf 'Unexpected argument: %s\n' "$1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+done
+
+open_feature "${FEATURE:-home}"

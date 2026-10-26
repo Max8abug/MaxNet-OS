@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if (($# != 1)); then
+  printf 'Usage: %s /path/to/MaxNet\n' "$0" >&2
+  exit 2
+fi
+
+source_dir="$(realpath "$1")"
+patch_file="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/patches/maxnet-feature-intents.patch"
+
+if [[ ! -f "$source_dir/artifacts/photo-desktop/src/App.tsx" ]]; then
+  printf 'That folder does not look like a MaxNet checkout: %s\n' "$source_dir" >&2
+  exit 1
+fi
+if ! git -C "$source_dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  printf 'The MaxNet folder must be a Git working tree so the patch can be checked safely.\n' >&2
+  exit 1
+fi
+if ! git -C "$source_dir" apply --check "$patch_file"; then
+  printf '%s\n' "Patch check failed. No files were changed."
+  printf '%s\n' "Check for local edits or an already-applied patch, then inspect the patch manually."
+  exit 1
+fi
+
+git -C "$source_dir" apply "$patch_file"
+printf '%s\n' "MaxNet feature intents installed. Review the diff, run the MaxNet checks, and deploy MaxNet to activate the shortcuts."
