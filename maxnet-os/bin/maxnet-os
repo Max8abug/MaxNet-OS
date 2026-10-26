@@ -135,8 +135,17 @@ choose_system_theme() {
 }
 
 first_run() {
+  apply_start_menu_icon
   [[ -e "$theme_config" ]] && return 0
   choose_system_theme
+}
+
+apply_start_menu_icon() {
+  command -v gsettings >/dev/null 2>&1 || return 0
+  gsettings writable org.cinnamon app-menu-icon-name >/dev/null 2>&1 || return 0
+  if ! gsettings set org.cinnamon app-menu-icon-name "maxnet-os-start"; then
+    printf '%s\n' "Could not set the Cinnamon Start menu icon." >&2
+  fi
 }
 
 show_update_error() {
@@ -192,7 +201,13 @@ try:
         release = json.load(response)
 except HTTPError as error:
     if error.code == 404:
-        print("No published MaxNet OS release was found.", file=sys.stderr)
+        print(
+            "No stable MaxNet OS release has been published yet. "
+            "The updater needs a release containing this system's .deb package "
+            "and its .sha256 checksum.\n"
+            "Release page: https://github.com/Max8abug/MaxNet-OS/releases",
+            file=sys.stderr,
+        )
     else:
         print(f"GitHub release check failed with HTTP {error.code}.", file=sys.stderr)
     raise SystemExit(1)
@@ -361,6 +376,7 @@ apply_system_theme() {
   gsettings set org.cinnamon.theme name "$theme_name"
   gsettings set org.cinnamon.desktop.background picture-uri \
     "file:///usr/share/backgrounds/maxnet-os-$THEME_ID.svg"
+  apply_start_menu_icon
   printf 'MaxNet %s theme applied. Use --restore-system-theme to restore the previous settings.\n' "$THEME_ID"
 }
 

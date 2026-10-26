@@ -6,24 +6,64 @@
 @define-color theme_selected_bg_color @ACCENT@;
 @define-color theme_selected_fg_color @ACCENT_FG@;
 @define-color theme_borders @BORDER@;
+@define-color window_bg_color @BG@;
+@define-color window_fg_color @FG@;
+@define-color view_bg_color @SURFACE@;
+@define-color view_fg_color @FG@;
+@define-color headerbar_bg_color @BG@;
+@define-color headerbar_fg_color @FG@;
+@define-color sidebar_bg_color @BG@;
+@define-color sidebar_fg_color @FG@;
+@define-color card_bg_color @SURFACE@;
+@define-color card_fg_color @FG@;
+@define-color popover_bg_color @SURFACE@;
+@define-color popover_fg_color @FG@;
+@define-color dialog_bg_color @BG@;
+@define-color dialog_fg_color @FG@;
+@define-color accent_color @ACCENT@;
+@define-color borders @BORDER@;
 
 * {
   font-family: @FONT@;
 }
 
 window,
-dialog {
+dialog,
+.background,
+window.background,
+dialog.background,
+.csd,
+.solid-csd {
   background-color: @BG@;
+  background-image: none;
   color: @FG@;
 }
 
 headerbar,
 .titlebar {
-  background-image: @PANEL_BG@;
+  background-image: none;
   background-color: @ACCENT@;
   color: @ACCENT_FG@;
   border-color: @BORDER@;
   border-radius: @RADIUS@;
+}
+
+window:backdrop,
+dialog:backdrop,
+.background:backdrop {
+  background-color: @BG@;
+  background-image: none;
+  color: @FG@;
+}
+
+popover,
+popover.background,
+menu,
+tooltip {
+  background-color: @SURFACE@;
+  background-image: none;
+  color: @FG@;
+  border: 1px solid @BORDER@;
 }
 
 button {
@@ -47,6 +87,7 @@ textview,
 .view,
 treeview.view {
   background-color: @SURFACE@;
+  background-image: none;
   color: @FG@;
   border-color: @BORDER@;
 }
@@ -59,6 +100,7 @@ selection,
 
 tooltip {
   background-color: @SURFACE@;
+  background-image: none;
   color: @FG@;
   border: 1px solid @BORDER@;
 }
