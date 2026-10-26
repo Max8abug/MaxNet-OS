@@ -11,10 +11,11 @@ install -Dm644 "$ROOT/package/DEBIAN/control" "$STAGE/DEBIAN/control"
 sed -i "s/^Version: .*/Version: $VERSION/" "$STAGE/DEBIAN/control"
 
 install -Dm755 "$ROOT/bin/maxnet-os" "$STAGE/usr/bin/maxnet-os"
+install -Dm644 "$ROOT/VERSION" "$STAGE/usr/share/maxnet-os/VERSION"
 install -Dm644 "$ROOT/share/backgrounds/maxnet-os.svg" \
   "$STAGE/usr/share/backgrounds/maxnet-os.svg"
 
-while IFS='|' read -r theme_id label bg fg accent surface border accent_fg; do
+while IFS='|' read -r theme_id label bg fg accent surface border accent_fg font_family frame radius panel_bg button_bg; do
   [[ -n "$theme_id" && "$theme_id" != \#* ]] || continue
   theme_name="MaxNet-$theme_id"
   theme_dir="$STAGE/usr/share/themes/$theme_name"
@@ -35,6 +36,11 @@ EOF
       -e "s|@SURFACE@|$surface|g" \
       -e "s|@BORDER@|$border|g" \
       -e "s|@ACCENT_FG@|$accent_fg|g" \
+      -e "s|@FONT@|$font_family|g" \
+      -e "s|@FRAME@|$frame|g" \
+      -e "s|@RADIUS@|$radius|g" \
+      -e "s|@PANEL_BG@|$panel_bg|g" \
+      -e "s|@BUTTON_BG@|$button_bg|g" \
       "$ROOT/share/themes/templates/${template##*/}.in" > "$theme_dir/$template"
   done
   sed \
@@ -44,6 +50,11 @@ EOF
     -e "s|@SURFACE@|$surface|g" \
     -e "s|@BORDER@|$border|g" \
     -e "s|@ACCENT_FG@|$accent_fg|g" \
+    -e "s|@FONT@|$font_family|g" \
+    -e "s|@FRAME@|$frame|g" \
+    -e "s|@RADIUS@|$radius|g" \
+    -e "s|@PANEL_BG@|$panel_bg|g" \
+    -e "s|@BUTTON_BG@|$button_bg|g" \
     "$ROOT/share/themes/templates/wallpaper.svg.in" \
     > "$STAGE/usr/share/backgrounds/maxnet-os-$theme_id.svg"
 done < "$ROOT/share/themes/palette.tsv"
@@ -55,6 +66,10 @@ done < <(find "$ROOT/share/icons" -type f -name '*.svg' -print0)
 while IFS= read -r -d '' file; do
   install -Dm644 "$file" "$STAGE/usr/share/applications/$(basename "$file")"
 done < <(find "$ROOT/share/applications" -type f -name '*.desktop' -print0)
+
+while IFS= read -r -d '' file; do
+  install -Dm644 "$file" "$STAGE/etc/xdg/autostart/$(basename "$file")"
+done < <(find "$ROOT/share/autostart" -type f -name '*.desktop' -print0)
 
 while IFS='|' read -r feature label icon category comment; do
   [[ -n "$feature" && "$feature" != \#* ]] || continue

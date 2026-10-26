@@ -1,8 +1,8 @@
-classic-light|Classic light|#c0c0c0|#111111|#000080|#f4f4f4|#777777|#ffffff
-classic-dark|Classic dark|#242a34|#f2f5fb|#6d9cff|#333b48|#586273|#101827
-xp-light|Windows XP light|#d7e5f6|#21364d|#367bd1|#f5f8fc|#84a9d6|#ffffff
-xp-dark|Windows XP dark|#1d2738|#edf3ff|#64a7ff|#29364b|#435b7e|#10243b
-vista|Windows Vista|#e7f1f6|#1a2833|#4398c5|#f7fbfd|#a3c3d3|#ffffff
-vista-dark|Windows Vista dark|#1e2c35|#eaf7fc|#50bde0|#293b45|#506c78|#102630
-gold|Gold picture frame|#e4d5a4|#3a2b0b|#b98212|#f9f1da|#9b7b35|#211700
-silver|Silver picture frame|#d6d9de|#272b32|#70839a|#f6f7f9|#929ba8|#ffffff
+classic-light|Classic light|#c0c0c0|#000000|#0000ff|#ffffff|#808080|#ffffff|"Pixelated MS Sans Serif", "MS Sans Serif", Tahoma, sans-serif|1px solid #808080|0|linear-gradient(to bottom, #0000ff, #000080)|linear-gradient(to bottom, #ffffff, #c0c0c0)
+classic-dark|Classic dark|#1a2029|#dbe3ec|#5a9bea|#2e3844|#667585|#ffffff|Tahoma, sans-serif|1px solid #667585|0|linear-gradient(to bottom, #344455, #171d26)|linear-gradient(to bottom, #465363, #2e3844)
+xp-light|Windows XP light|#5b91df|#17202b|#1768ce|#fffef7|#8ba9c4|#ffffff|Tahoma, Verdana, sans-serif|2px solid #1768ce|8px 8px 3px 3px|linear-gradient(to bottom, #3d8cf5, #0b58e0 60%, #0640b0)|linear-gradient(to bottom, #f5f3e9, #d8e4f2)
+xp-dark|Windows XP dark|#101b2c|#f0f4fa|#83baff|#182231|#536b89|#101b2c|Tahoma, Verdana, sans-serif|2px solid #1256bd|8px 8px 3px 3px|linear-gradient(to bottom, #4b91e9, #1b62c4 60%, #103b83)|linear-gradient(to bottom, #46576b, #293646)
+vista|Windows Vista|#142f4d|#10253a|#2d719f|#f4f8fb|#829bad|#ffffff|"Segoe UI", "Helvetica Neue", Arial, sans-serif|1px solid #829bad|7px|linear-gradient(to bottom, rgba(244,252,255,.8), rgba(111,165,203,.8))|linear-gradient(to bottom, #ffffff, #d0dce5)
+vista-dark|Windows Vista dark|#0a121d|#e4edf6|#5aa6d6|#172232|#4c6781|#0a121d|"Segoe UI", "Helvetica Neue", Arial, sans-serif|1px solid #4c6781|7px|linear-gradient(to bottom, #466e96, #0e2036)|linear-gradient(to bottom, #44607c, #1f3248)
+gold|Gold picture frame|#291915|#332315|#6a2923|#fbf3df|#a78239|#ffffff|Georgia, "Times New Roman", serif|5px ridge #a78239|1px|linear-gradient(to bottom, #d8aa3a, #6a2923)|linear-gradient(to bottom, #fbf3df, #d8c58f)
+silver|Silver picture frame|#1c2431|#1c2633|#243b5e|#f3f6f9|#8795a6|#ffffff|"Palatino Linotype", Palatino, Georgia, serif|5px outset #8795a6|2px|linear-gradient(to bottom, #2f4668, #15233b)|linear-gradient(to bottom, #fafcfe, #aab4c2)

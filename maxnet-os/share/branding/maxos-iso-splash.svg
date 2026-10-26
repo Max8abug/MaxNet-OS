@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#087f7e"/>
+      <stop offset=".62" stop-color="#00696b"/>
+      <stop offset="1" stop-color="#004f57"/>
+    </linearGradient>
+    <linearGradient id="titlebar" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#173b98"/>
+      <stop offset="1" stop-color="#357fda"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <g fill="none" stroke="#b7ffff" stroke-opacity=".12">
+    <path d="M530 0v560M600 0v560M670 0v560M740 0v560"/>
+    <path d="M500 70h300M500 140h300M500 210h300M500 280h300M500 350h300M500 420h300M500 490h300"/>
+  </g>
+  <rect x="315" y="118" width="424" height="332" fill="#003f42" opacity=".42"/>
+  <rect x="300" y="102" width="424" height="332" fill="#c0c0c0" stroke="#101416" stroke-width="4"/>
+  <path d="M304 106h416M304 106v324" stroke="#fff" stroke-width="3" opacity=".8"/>
+  <path d="M720 430H304M720 430V104" stroke="#555" stroke-width="3"/>
+  <rect x="310" y="112" width="404" height="47" fill="url(#titlebar)"/>
+  <text x="329" y="143" fill="#fff" font-family="DejaVu Sans, Arial, sans-serif" font-size="21" font-weight="700">Welcome to MaxOS</text>
+  <g transform="translate(665 121)">
+    <rect width="18" height="23" fill="#c0c0c0" stroke="#222"/>
+    <path d="M4 17h10" stroke="#222" stroke-width="2"/>
+    <rect x="21" width="18" height="23" fill="#c0c0c0" stroke="#222"/>
+    <path d="M25 5h10v12H25z" fill="none" stroke="#222"/>
+    <rect x="42" width="18" height="23" fill="#c0c0c0" stroke="#222"/>
+    <path d="m46 5 10 13m0-13L46 18" stroke="#222" stroke-width="1.5"/>
+  </g>
+  <rect x="340" y="196" width="104" height="104" rx="14" fill="#10262b" stroke="#36d6c0" stroke-width="3"/>
+  <text x="470" y="236" fill="#162c30" font-family="DejaVu Sans, Arial, sans-serif" font-size="26" font-weight="700">MaxNet OS</text>
+  <text x="470" y="270" fill="#34484a" font-family="DejaVu Sans, Arial, sans-serif" font-size="14">Apps, themes, and community</text>
+  <rect x="316" y="373" width="392" height="42" fill="#d4d4d4" stroke="#777"/>
+  <text x="332" y="400" fill="#333" font-family="DejaVu Sans, Arial, sans-serif" font-size="15">Starting the MaxNet desktop...</text>
+  <rect y="560" width="800" height="40" fill="#c0c0c0" stroke="#3c3c3c" stroke-width="2"/>
+  <rect x="8" y="566" width="100" height="28" fill="#d6d6d6" stroke="#555"/>
+  <rect x="14" y="572" width="16" height="16" rx="3" fill="#087f7e" stroke="#173b98"/>
+  <path d="M17 584v-8h2l3 3 3-3h2v8h-2v-4l-3 3-3-3v4z" fill="#fff"/>
+  <text x="38" y="586" fill="#17292b" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="700">MaxOS</text>
+</svg>

@@ -1,0 +1,43 @@
+name: Publish MaxNet OS release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Verify release tag
+        shell: bash
+        run: |
+          version="$(tr -d '[:space:]' < maxnet-os/VERSION)"
+          test "${GITHUB_REF_NAME#v}" = "$version" || {
+            echo "Tag $GITHUB_REF_NAME does not match MaxNet OS version $version" >&2
+            exit 1
+          }
+
+      - name: Build Debian package
+        run: ./maxnet-os/package/build-deb.sh
+
+      - name: Create package checksum
+        working-directory: maxnet-os/dist
+        run: sha256sum "maxnet-os_$(tr -d '[:space:]' < ../VERSION)_amd64.deb" > "maxnet-os_$(tr -d '[:space:]' < ../VERSION)_amd64.deb.sha256"
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="$(tr -d '[:space:]' < maxnet-os/VERSION)"
+          gh release create "$GITHUB_REF_NAME" \
+            "maxnet-os/dist/maxnet-os_${version}_amd64.deb" \
+            "maxnet-os/dist/maxnet-os_${version}_amd64.deb.sha256" \
+            --title "MaxNet OS ${version}" \
+            --generate-notes

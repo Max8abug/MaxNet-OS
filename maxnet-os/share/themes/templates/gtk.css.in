@@ -1,4 +1,4 @@
-/* MaxNet theme colors adapted for GTK applications. */
+/* MaxNet display theme adapted for GTK applications. */
 @define-color theme_bg_color @BG@;
 @define-color theme_fg_color @FG@;
 @define-color theme_base_color @SURFACE@;
@@ -6,6 +6,10 @@
 @define-color theme_selected_bg_color @ACCENT@;
 @define-color theme_selected_fg_color @ACCENT_FG@;
 @define-color theme_borders @BORDER@;
+
+* {
+  font-family: @FONT@;
+}
 
 window,
 dialog {
@@ -15,17 +19,19 @@ dialog {
 
 headerbar,
 .titlebar {
-  background-image: none;
+  background-image: @PANEL_BG@;
   background-color: @ACCENT@;
   color: @ACCENT_FG@;
+  border-color: @BORDER@;
+  border-radius: @RADIUS@;
 }
 
 button {
-  background-image: none;
+  background-image: @BUTTON_BG@;
   background-color: @SURFACE@;
   color: @FG@;
-  border: 1px solid @BORDER@;
-  border-radius: 3px;
+  border: @FRAME@;
+  border-radius: @RADIUS@;
   padding: 4px 8px;
 }
 

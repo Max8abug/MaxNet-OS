@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=MaxNet OS First Run
+Comment=Choose your MaxNet desktop theme
+Exec=maxnet-os --first-run
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true
+OnlyShowIn=X-Cinnamon;
