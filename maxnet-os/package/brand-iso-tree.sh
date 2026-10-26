@@ -19,9 +19,10 @@ def replace_required(relative, replacements):
         raise SystemExit(f"ISO boot file is missing: {relative}")
     text = path.read_text()
     for old, new in replacements.items():
-        if old not in text:
+        if old in text:
+            text = text.replace(old, new)
+        elif new not in text:
             raise SystemExit(f"Expected branding text not found in {relative}: {old}")
-        text = text.replace(old, new)
     path.chmod(path.stat().st_mode | stat.S_IWUSR)
     path.write_text(text)
 
@@ -58,6 +59,9 @@ if [[ ! -f "$SPLASH640" ]]; then
   exit 1
 fi
 chmod u+w "$SPLASH640"
+if [[ -f "$SPLASH800" ]]; then
+  chmod u+w "$SPLASH800"
+fi
 magick -background none "$PACKAGE_ROOT/share/branding/maxos-iso-splash.svg" \
   -resize 640x480! -alpha off -depth 8 -define png:color-type=2 "$SPLASH640"
 magick -background none "$PACKAGE_ROOT/share/branding/maxos-iso-splash.svg" \

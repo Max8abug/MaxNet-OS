@@ -84,14 +84,27 @@ greeter.write_text(greeter_text)
 
 plymouth = root / "usr/share/plymouth/themes/mint-logo/mint-logo.plymouth"
 plymouth_text = plymouth.read_text()
-plymouth_text = plymouth_text.replace("Name=Mint Logo", "Name=MaxOS")
-plymouth_text = plymouth_text.replace(
-    "Description=A theme that features an animated Linux Mint logo.",
-    "Description=MaxOS startup screen",
-)
-plymouth_text = plymouth_text.replace("BackgroundStartColor=0x000000", "BackgroundStartColor=0x0b171b")
-plymouth_text = plymouth_text.replace("BackgroundEndColor=0x000000", "BackgroundEndColor=0x12353a")
-plymouth_text = plymouth_text.replace("ProgressBarForegroundColor=0xffffff", "ProgressBarForegroundColor=0x36d6c0")
+def set_config_values(text, values):
+    lines = text.splitlines()
+    for key, value in values.items():
+        prefix = key + "="
+        matches = [index for index, line in enumerate(lines) if line.startswith(prefix)]
+        replacement = prefix + value
+        if matches:
+            lines[matches[0]] = replacement
+            for index in reversed(matches[1:]):
+                del lines[index]
+        else:
+            lines.append(replacement)
+    return "\n".join(lines) + "\n"
+
+plymouth_text = set_config_values(plymouth_text, {
+    "Name": "MaxOS",
+    "Description": "MaxOS startup screen in the MaxNet classic desktop style",
+    "BackgroundStartColor": "0x087f7e",
+    "BackgroundEndColor": "0x004f57",
+    "ProgressBarForegroundColor": "0xf4bd59",
+})
 plymouth.write_text(plymouth_text)
 
 def replace_in(relative, replacements):
