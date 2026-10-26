@@ -61,4 +61,6 @@ This repository does not include or redistribute a Linux Mint ISO. To make a boo
 4. Choose the desired theme for the live-session user, then finish Cubic's ISO creation.
 5. Boot the result in a VM first. Test sign-in, chat, forum, Network, Eaglercraft/WebGL, all eight themes, and live-installer behavior before installing it on a physical computer.
 
+The first boot splash is stored in the ISO's initramfs as well as the live root filesystem. After branding the root filesystem, run `package/brand-initramfs.sh /path/to/iso-tree/casper/initrd.lz /path/to/branded-rootfs` before rebuilding the ISO; this copies the MaxOS Plymouth artwork into the early boot image.
+
 Linux Mint and Cinnamon are upstream open-source projects. MaxNet OS is an unofficial derivative and is not endorsed by the Linux Mint project.
