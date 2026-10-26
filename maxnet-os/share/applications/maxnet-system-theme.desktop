@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Apply MaxNet OS Theme
-Comment=Apply the MaxNet Cinnamon desktop theme
-Exec=maxnet-os --apply-system-theme
+Name=MaxNet OS Themes
+Comment=Choose a desktop theme adapted from MaxNet's display themes
+Exec=maxnet-os --choose-theme
 Icon=maxnet-theme
 Terminal=false
 Categories=Settings;

@@ -1,0 +1,23 @@
+# feature|label|icon|category|comment
+signin|Sign in to MaxNet|maxnet-signin|Network|Open the MaxNet account sign-in dialog
+chat|MaxNet Chatroom|maxnet-chat|Network|Open the MaxNet chatroom
+forum|MaxNet Forums|maxnet-forum|Network|Open MaxNet discussion forums
+dms|MaxNet Direct Messages|maxnet-chat|Network|Open MaxNet private messages
+network|the Network Feed|maxnet-network|Network|Open the MaxNet social feed
+network-people|Network People|maxnet-network|Network|Browse people on the Network
+network-wiki|Network Wiki|maxnet-network|Network|Open the Network wiki
+gallery|Photo Gallery|maxnet|Graphics|Browse the MaxNet photo gallery
+users|MaxNet Users|maxnet|Network|Browse MaxNet members
+visits|Visitor Counter|maxnet|Network|Open the MaxNet visitor counter
+guestbook|MaxNet Guestbook|maxnet|Network|Open the MaxNet guestbook
+planner|MaxNet Planner|maxnet|Office|Open the MaxNet planner
+news|MaxNet Site News|maxnet|Network|Read MaxNet site news
+games|MaxNet Games|maxnet-eaglercraft|Game|Browse games available on MaxNet
+eaglercraft|Eaglercraft|maxnet-eaglercraft|Game|Launch Eaglercraft from MaxNet
+mypage|My Page Editor|maxnet|Network|Edit your MaxNet profile page
+youtube|Synced YouTube|maxnet|AudioVideo|Open synchronized YouTube on MaxNet
+polls|MaxNet Polls|maxnet|Network|Browse and vote in MaxNet polls
+music|MaxNet Music Player|maxnet|AudioVideo|Open the MaxNet music player
+playlists|My MaxNet Playlists|maxnet|AudioVideo|Open your MaxNet playlists
+drawing|Visitor Drawing Pad|maxnet|Graphics|Open the MaxNet drawing pad
+settings|MaxNet Display Settings|maxnet-theme|Settings|Change MaxNet's in-app display theme

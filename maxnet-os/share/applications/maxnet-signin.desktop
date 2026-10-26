@@ -1,9 +1,0 @@
-[Desktop Entry]
-Version=1.0
-Type=Application
-Name=MaxNet Sign In
-Comment=Sign in to your MaxNet account
-Exec=maxnet-os --feature signin
-Icon=maxnet-signin
-Terminal=false
-Categories=Network;

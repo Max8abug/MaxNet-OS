@@ -5,6 +5,7 @@ APP_NAME="MaxNet OS"
 DEFAULT_URL="https://moonbat.ddns.net"
 FEATURE=""
 PRINT_URL=0
+THEME_ID=""
 
 usage() {
   cat <<'EOF'
@@ -13,15 +14,22 @@ MaxNet OS desktop launcher
 Usage:
   maxnet-os [--feature NAME]
   maxnet-os configure
-  maxnet-os --apply-system-theme
+  maxnet-os --choose-theme
+  maxnet-os --theme THEME_ID
   maxnet-os --restore-system-theme
 
-Features: home, signin, chat, forum, network, network-wiki, eaglercraft, theme
+Features: home, signin, chat, forum, dms, network, network-people,
+          network-wiki, gallery, users, visits, guestbook, planner, news,
+          games, eaglercraft, mypage, youtube, polls, music, playlists,
+          drawing, settings
+Themes: classic-light, classic-dark, xp-light, xp-dark, vista, vista-dark,
+        gold, silver
 EOF
 }
 
 config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/maxnet-os"
 user_config="$config_dir/settings.conf"
+theme_config="$config_dir/theme"
 system_config="/etc/maxnet-os/settings.conf"
 base_url="${MAXNET_URL:-}"
 
@@ -58,6 +66,70 @@ if not valid:
 PY
 }
 
+validate_theme() {
+  case "$1" in
+    classic-light|classic-dark|xp-light|xp-dark|vista|vista-dark|gold|silver) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+theme_slug() {
+  if [[ -r "$theme_config" ]]; then
+    IFS= read -r THEME_ID < "$theme_config" || true
+    if validate_theme "$THEME_ID"; then
+      return
+    fi
+    printf '%s\n' "Invalid MaxNet OS theme setting: $THEME_ID" >&2
+    exit 1
+  fi
+  THEME_ID="classic-light"
+}
+
+theme_selected() {
+  if [[ "$THEME_ID" == "$1" ]]; then
+    printf 'TRUE'
+  else
+    printf 'FALSE'
+  fi
+}
+
+set_system_theme() {
+  local selected="$1"
+  validate_theme "$selected" || {
+    printf 'Unknown MaxNet OS theme: %s\n' "$selected" >&2
+    usage >&2
+    exit 2
+  }
+  THEME_ID="$selected"
+  install -d -m 700 "$config_dir"
+  (umask 077; printf '%s\n' "$THEME_ID" > "$theme_config")
+  apply_system_theme
+}
+
+choose_system_theme() {
+  command -v zenity >/dev/null 2>&1 || {
+    printf '%s\n' "Install zenity to choose a MaxNet OS theme from the desktop." >&2
+    exit 1
+  }
+  theme_slug
+  local selected
+  selected="$(zenity --list \
+    --title="MaxNet OS themes" \
+    --text="Choose a desktop theme. This also sets the theme used when MaxNet apps open." \
+    --radiolist --column="Selected" --column="Theme ID" --column="Theme" \
+    --hide-column=1 --print-column=2 \
+    "$(theme_selected classic-light)" classic-light "Classic light" \
+    "$(theme_selected classic-dark)" classic-dark "Classic dark" \
+    "$(theme_selected xp-light)" xp-light "Windows XP light" \
+    "$(theme_selected xp-dark)" xp-dark "Windows XP dark" \
+    "$(theme_selected vista)" vista "Windows Vista" \
+    "$(theme_selected vista-dark)" vista-dark "Windows Vista dark" \
+    "$(theme_selected gold)" gold "Gold picture frame" \
+    "$(theme_selected silver)" silver "Silver picture frame")" || exit 0
+  [[ -n "$selected" ]] || exit 0
+  set_system_theme "$selected"
+}
+
 configure_url() {
   command -v zenity >/dev/null 2>&1 || {
     printf '%s\n' "Install zenity to configure MaxNet from the desktop." >&2
@@ -85,6 +157,8 @@ apply_system_theme() {
     exit 1
   }
   local backup="$config_dir/original-theme"
+  theme_slug
+  local theme_name="MaxNet-$THEME_ID"
   install -d -m 700 "$config_dir"
   if [[ ! -e "$backup" ]]; then
     {
@@ -94,11 +168,11 @@ apply_system_theme() {
     } > "$backup"
     chmod 600 "$backup"
   fi
-  gsettings set org.cinnamon.desktop.interface gtk-theme "MaxNet"
-  gsettings set org.cinnamon.theme name "MaxNet"
+  gsettings set org.cinnamon.desktop.interface gtk-theme "$theme_name"
+  gsettings set org.cinnamon.theme name "$theme_name"
   gsettings set org.cinnamon.desktop.background picture-uri \
-    "file:///usr/share/backgrounds/maxnet-os.svg"
-  printf '%s\n' "MaxNet OS theme applied. Use --restore-system-theme to restore the previous settings."
+    "file:///usr/share/backgrounds/maxnet-os-$THEME_ID.svg"
+  printf 'MaxNet %s theme applied. Use --restore-system-theme to restore the previous settings.\n' "$THEME_ID"
 }
 
 restore_system_theme() {
@@ -123,13 +197,14 @@ restore_system_theme() {
   gsettings set org.cinnamon.theme name "$cinnamon_theme"
   gsettings set org.cinnamon.desktop.background picture-uri "$wallpaper"
   rm -f "$backup"
+  rm -f "$theme_config"
   printf '%s\n' "Previous Cinnamon theme settings restored."
 }
 
 open_feature() {
   local feature="$1"
   case "$feature" in
-    home|signin|chat|forum|network|network-wiki|eaglercraft|theme) ;;
+    home|signin|chat|forum|dms|network|network-people|network-wiki|gallery|users|visits|guestbook|planner|news|games|eaglercraft|mypage|youtube|polls|music|playlists|drawing|settings) ;;
     *)
       printf 'Unknown MaxNet feature: %s\n' "$feature" >&2
       usage >&2
@@ -145,6 +220,14 @@ open_feature() {
   local url="${base_url%/}/"
   if [[ "$feature" != "home" ]]; then
     url+="?maxnet-feature=$feature"
+  fi
+  if [[ -r "$theme_config" ]]; then
+    theme_slug
+    if [[ "$feature" == "home" ]]; then
+      url+="?maxnet-theme=$THEME_ID"
+    else
+      url+="&maxnet-theme=$THEME_ID"
+    fi
   fi
   if (( PRINT_URL )); then
     printf '%s\n' "$url"
@@ -182,8 +265,18 @@ while (($#)); do
       FEATURE="$2"
       shift 2
       ;;
+    --choose-theme)
+      choose_system_theme
+      exit 0
+      ;;
+    --theme)
+      (($# >= 2)) || { usage >&2; exit 2; }
+      set_system_theme "$2"
+      exit 0
+      ;;
     --apply-system-theme)
-      apply_system_theme
+      theme_slug
+      set_system_theme "$THEME_ID"
       exit 0
       ;;
     --restore-system-theme)

@@ -1,9 +1,0 @@
-[Desktop Entry]
-Version=1.0
-Type=Application
-Name=the Network
-Comment=Open the MaxNet social feed and community
-Exec=maxnet-os --feature network
-Icon=maxnet-network
-Terminal=false
-Categories=Network;

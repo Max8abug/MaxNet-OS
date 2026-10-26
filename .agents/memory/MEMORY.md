@@ -1,0 +1,1 @@
+- [MaxNet repo ownership](maxnet-repo-ownership.md) — User owns MaxNet's GitHub repo and allows source changes when needed for this integration.

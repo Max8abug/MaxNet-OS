@@ -1,9 +1,0 @@
-[Desktop Entry]
-Version=1.0
-Type=Application
-Name=MaxNet Forums
-Comment=Open the MaxNet forums
-Exec=maxnet-os --feature forum
-Icon=maxnet-forum
-Terminal=false
-Categories=Network;

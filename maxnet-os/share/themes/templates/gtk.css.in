@@ -1,0 +1,58 @@
+/* MaxNet theme colors adapted for GTK applications. */
+@define-color theme_bg_color @BG@;
+@define-color theme_fg_color @FG@;
+@define-color theme_base_color @SURFACE@;
+@define-color theme_text_color @FG@;
+@define-color theme_selected_bg_color @ACCENT@;
+@define-color theme_selected_fg_color @ACCENT_FG@;
+@define-color theme_borders @BORDER@;
+
+window,
+dialog {
+  background-color: @BG@;
+  color: @FG@;
+}
+
+headerbar,
+.titlebar {
+  background-image: none;
+  background-color: @ACCENT@;
+  color: @ACCENT_FG@;
+}
+
+button {
+  background-image: none;
+  background-color: @SURFACE@;
+  color: @FG@;
+  border: 1px solid @BORDER@;
+  border-radius: 3px;
+  padding: 4px 8px;
+}
+
+button:hover,
+button:checked,
+button:active {
+  background-color: @ACCENT@;
+  color: @ACCENT_FG@;
+}
+
+entry,
+textview,
+.view,
+treeview.view {
+  background-color: @SURFACE@;
+  color: @FG@;
+  border-color: @BORDER@;
+}
+
+selection,
+*:selected {
+  background-color: @ACCENT@;
+  color: @ACCENT_FG@;
+}
+
+tooltip {
+  background-color: @SURFACE@;
+  color: @FG@;
+  border: 1px solid @BORDER@;
+}

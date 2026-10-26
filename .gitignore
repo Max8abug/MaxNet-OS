@@ -2,6 +2,7 @@
 
 # compiled output
 dist
+/maxnet-os/dist/
 tmp
 out-tsc
 *.tsbuildinfo

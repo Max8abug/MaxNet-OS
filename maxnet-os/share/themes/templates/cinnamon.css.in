@@ -1,0 +1,39 @@
+/* MaxNet theme colors adapted for Cinnamon. */
+#panel,
+.panel {
+  background-color: @BG@;
+  color: @FG@;
+}
+
+.menu,
+.popup-menu-content,
+.calendar,
+.workspace-switcher {
+  background-color: @SURFACE@;
+  color: @FG@;
+  border: 1px solid @BORDER@;
+}
+
+.menu-item:selected,
+.menu .menu-item:active,
+.button:checked {
+  background-color: @ACCENT@;
+  color: @ACCENT_FG@;
+}
+
+.menu-item,
+.button {
+  color: @FG@;
+}
+
+.menu-item:hover,
+.button:hover {
+  background-color: @ACCENT@;
+  color: @ACCENT_FG@;
+}
+
+.tooltip {
+  background-color: @SURFACE@;
+  color: @FG@;
+  border: 1px solid @BORDER@;
+}

@@ -1,11 +1,11 @@
 Package: maxnet-os
-Version: 0.1.0
+Version: 0.2.0
 Section: x11
 Priority: optional
 Architecture: all
 Depends: bash, python3, xdg-utils, zenity
 Recommends: chromium | chromium-browser | firefox
 Maintainer: MaxNet OS contributors
-Description: MaxNet-branded Linux Mint desktop integration
- A Cinnamon theme, desktop launchers, and a browser-based MaxNet app
- for accessing the existing MaxNet service from Linux Mint.
+Description: MaxNet-themed Linux Mint desktop integration
+ Eight desktop themes adapted from MaxNet display themes and app-menu
+ launchers for MaxNet apps, using the existing MaxNet service.
