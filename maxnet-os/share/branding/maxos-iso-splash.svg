@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b171b"/>
+      <stop offset=".58" stop-color="#12353a"/>
+      <stop offset="1" stop-color="#0b1b24"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop stop-color="#38d6c2" stop-opacity=".24"/>
+      <stop offset="1" stop-color="#38d6c2" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#bg)"/>
+  <circle cx="645" cy="118" r="310" fill="url(#glow)"/>
+  <g fill="none" stroke="#53b9b1" stroke-opacity=".10">
+    <path d="M480 0v600M560 0v600M640 0v600M720 0v600M800 0v600"/>
+    <path d="M400 80h400M400 160h400M400 240h400M400 320h400M400 400h400M400 480h400"/>
+  </g>
+  <path d="M0 460 190 360l150 80 160-140 300 130v170H0z" fill="#0a2429" opacity=".8"/>
+  <g transform="translate(110 68)">
+    <rect width="144" height="144" rx="32" fill="#10262b" stroke="#36d6c0" stroke-opacity=".8" stroke-width="3"/>
+    <path d="M25 101V43h17l30 31 30-31h17v58H98V71L72 96 46 71v30z" fill="#36d6c0"/>
+    <circle cx="111" cy="29" r="7" fill="#f4bd59"/>
+  </g>
+  <text x="286" y="157" fill="#f4f8f8" font-family="DejaVu Sans, Arial, sans-serif" font-size="78" font-weight="600" letter-spacing="1">MaxOS</text>
+  <path d="M290 188h300" stroke="#36d6c0" stroke-width="4" stroke-linecap="round" opacity=".75"/>
+</svg>

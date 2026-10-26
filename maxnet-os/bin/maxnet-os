@@ -25,13 +25,16 @@ Features: home, signin, chat, forum, dms, network, network-people,
           drawing, settings
 Themes: classic-light, classic-dark, xp-light, xp-dark, vista, vista-dark,
         gold, silver
+  maxnet-os --updates
 EOF
 }
 
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/maxnet-os"
 user_config="$config_dir/settings.conf"
 theme_config="$config_dir/theme"
 system_config="/etc/maxnet-os/settings.conf"
+version_file="/usr/share/maxnet-os/VERSION"
 base_url="${MAXNET_URL:-}"
 
 if [[ -z "$base_url" ]]; then
@@ -131,6 +134,167 @@ choose_system_theme() {
   set_system_theme "$selected"
 }
 
+first_run() {
+  [[ -e "$theme_config" ]] && return 0
+  choose_system_theme
+}
+
+show_update_error() {
+  local message="$1"
+  if command -v zenity >/dev/null 2>&1; then
+    zenity --error --title="MaxNet OS Update Manager" --text="$message" || true
+  else
+    printf '%s\n' "$message" >&2
+  fi
+}
+
+check_for_updates() {
+  local current_version latest_info remote_version package_name package_url checksum_url release_digest
+  local tmp_dir checksum_file deb_file expected_digest actual_digest package_version error_file
+  local arch command_name
+
+  for command_name in python3 curl sha256sum dpkg dpkg-deb; do
+    command -v "$command_name" >/dev/null 2>&1 || {
+      show_update_error "The update manager needs $command_name, which is not installed."
+      return 1
+    }
+  done
+  command -v zenity >/dev/null 2>&1 || {
+    printf '%s\n' "Install zenity to use the graphical update manager." >&2
+    return 1
+  }
+
+  if [[ -r "$version_file" ]]; then
+    IFS= read -r current_version < "$version_file" || true
+  elif [[ -r "$script_dir/../VERSION" ]]; then
+    IFS= read -r current_version < "$script_dir/../VERSION" || true
+  else
+    current_version="0.0.0"
+  fi
+  arch="$(dpkg --print-architecture)"
+  error_file="$(mktemp "${TMPDIR:-/tmp}/maxnet-os-release-check.XXXXXX")"
+
+  if ! latest_info="$(python3 - "$arch" 2>"$error_file" <<'PY'
+import json
+import re
+import sys
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlsplit
+from urllib.request import Request, urlopen
+
+api = "https://api.github.com/repos/Max8abug/MaxNet-OS/releases/latest"
+try:
+    request = Request(api, headers={
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "MaxNet-OS-Update-Manager",
+    })
+    with urlopen(request, timeout=25) as response:
+        release = json.load(response)
+except HTTPError as error:
+    if error.code == 404:
+        print("No published MaxNet OS release was found.", file=sys.stderr)
+    else:
+        print(f"GitHub release check failed with HTTP {error.code}.", file=sys.stderr)
+    raise SystemExit(1)
+except (URLError, TimeoutError, json.JSONDecodeError) as error:
+    print(f"Could not reach the MaxNet OS release service: {error}", file=sys.stderr)
+    raise SystemExit(1)
+
+tag = release.get("tag_name", "")
+match = re.fullmatch(r"v?(\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.-]+)?)", tag)
+if not match or release.get("draft") or release.get("prerelease"):
+    print("The latest GitHub release has an invalid version or is not stable.", file=sys.stderr)
+    raise SystemExit(1)
+
+version = match.group(1)
+arch = sys.argv[1]
+package_name = f"maxnet-os_{version}_{arch}.deb"
+assets = {asset.get("name"): asset for asset in release.get("assets", [])}
+package = assets.get(package_name)
+checksum = assets.get(package_name + ".sha256")
+if not package or not checksum:
+    print(f"Release {tag} is missing the package or its SHA-256 file for {arch}.", file=sys.stderr)
+    raise SystemExit(1)
+
+def trusted_release_url(asset):
+    value = asset.get("browser_download_url", "")
+    parsed = urlsplit(value)
+    if (parsed.scheme != "https" or parsed.hostname != "github.com" or
+            parsed.username or parsed.password or
+            not parsed.path.startswith("/Max8abug/MaxNet-OS/releases/download/")):
+        raise SystemExit("GitHub returned an unexpected release download URL.")
+    return value
+
+digest = package.get("digest") or ""
+if digest and not re.fullmatch(r"sha256:[0-9a-fA-F]{64}", digest):
+    raise SystemExit("GitHub returned an invalid package digest.")
+print("\t".join((
+    version,
+    package_name,
+    trusted_release_url(package),
+    trusted_release_url(checksum),
+    digest.removeprefix("sha256:").lower(),
+)))
+PY
+)"; then
+    latest_info="$(cat "$error_file" 2>/dev/null || true)"
+    rm -f "$error_file"
+    show_update_error "${latest_info:-Could not check GitHub for MaxNet OS updates.}"
+    return 1
+  fi
+  rm -f "$error_file"
+  IFS=$'\t' read -r remote_version package_name package_url checksum_url release_digest <<< "$latest_info"
+  if ! dpkg --compare-versions "$remote_version" gt "$current_version"; then
+    zenity --info --title="MaxNet OS Update Manager" \
+      --text="MaxNet OS is up to date.\n\nInstalled version: $current_version\nLatest release: $remote_version" || true
+    return 0
+  fi
+
+  if ! zenity --question --title="MaxNet OS Update Available" \
+    --text="Version $remote_version is available (installed: $current_version).\n\nDownload and verify the package before installing it?"; then
+    return 0
+  fi
+
+  tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/maxnet-os-update.XXXXXX")"
+  trap 'rm -rf "$tmp_dir"' EXIT
+  checksum_file="$tmp_dir/$package_name.sha256"
+  deb_file="$tmp_dir/$package_name"
+  if ! curl --fail --location --silent --show-error \
+      --proto '=https' --proto-redir '=https' "$checksum_url" -o "$checksum_file" ||
+     ! curl --fail --location --silent --show-error \
+      --proto '=https' --proto-redir '=https' "$package_url" -o "$deb_file"; then
+    show_update_error "The release download failed. No system files were changed."
+    return 1
+  fi
+
+  expected_digest="$(awk -v file="$package_name" '$2 == file { print $1; exit }' "$checksum_file")"
+  actual_digest="$(sha256sum "$deb_file" | awk '{print $1}')"
+  if [[ ! "$expected_digest" =~ ^[[:xdigit:]]{64}$ ||
+        "$expected_digest" != "$actual_digest" ||
+        ( -n "$release_digest" && "$release_digest" != "$actual_digest" ) ]]; then
+    show_update_error "The downloaded package did not match the release SHA-256 checks. Installation was stopped."
+    return 1
+  fi
+  package_version="$(dpkg-deb --field "$deb_file" Version 2>/dev/null || true)"
+  if [[ "$(dpkg-deb --field "$deb_file" Package 2>/dev/null || true)" != "maxnet-os" ||
+        "$package_version" != "$remote_version" ]]; then
+    show_update_error "The downloaded file is not the expected MaxNet OS package version. Installation was stopped."
+    return 1
+  fi
+
+  if ! command -v pkexec >/dev/null 2>&1; then
+    show_update_error "PolicyKit (pkexec) is not installed, so the package cannot be installed graphically."
+    return 1
+  fi
+  if pkexec apt-get install -y "$deb_file"; then
+    zenity --info --title="MaxNet OS Updated" \
+      --text="MaxNet OS $remote_version was installed successfully." || true
+  else
+    show_update_error "The package installation did not complete. Check the authentication prompt and package manager output."
+    return 1
+  fi
+}
+
 sync_system_theme() {
   local request="$1"
   local selected="${request#maxnet-os://theme/}"
@@ -144,7 +308,7 @@ sync_system_theme() {
   }
   if zenity --question \
     --title="Sync MaxNet theme" \
-    --text="Apply the signed-in MaxNet account's $selected theme to this Linux Mint desktop?"; then
+    --text="Apply the signed-in MaxNet account's $selected theme to this MaxOS desktop?"; then
     set_system_theme "$selected"
   fi
 }
@@ -278,6 +442,14 @@ open_feature() {
 
 while (($#)); do
   case "$1" in
+    --first-run)
+      first_run
+      exit 0
+      ;;
+    --updates)
+      check_for_updates
+      exit $?
+      ;;
     configure)
       configure_url
       exit 0

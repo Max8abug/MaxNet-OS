@@ -3,9 +3,10 @@ Version: 0.3.0
 Section: x11
 Priority: optional
 Architecture: all
-Depends: bash, python3, xdg-utils, zenity
+Depends: bash, curl, policykit-1, python3, xdg-utils, zenity
 Recommends: chromium | chromium-browser | firefox
 Maintainer: MaxNet OS contributors
-Description: MaxNet-themed Linux Mint desktop integration
- Eight desktop themes adapted from MaxNet display themes and app-menu
- launchers for MaxNet apps, using the existing MaxNet service.
+Description: MaxNet-themed MaxOS desktop integration
+ Eight MaxNet display themes for Cinnamon and GTK, startup theme selection,
+ an update manager for checksum-verified GitHub releases, and app-menu
+ launchers for MaxNet apps using the existing MaxNet service.

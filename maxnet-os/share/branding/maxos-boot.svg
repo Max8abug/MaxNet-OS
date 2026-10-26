@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="220" viewBox="0 0 760 220">
+  <g transform="translate(14 14)">
+    <rect width="192" height="192" rx="42" fill="#10262b" stroke="#36d6c0" stroke-opacity=".8" stroke-width="4"/>
+    <path d="M34 135V57h23l39 42 39-42h23v78h-27V94l-35 34-35-34v41z" fill="#36d6c0"/>
+    <circle cx="148" cy="38" r="9" fill="#f4bd59"/>
+  </g>
+  <text x="242" y="150" fill="#f4f8f8" font-family="DejaVu Sans, Arial, sans-serif" font-size="112" font-weight="600" letter-spacing="1">MaxOS</text>
+  <path d="M246 180h360" stroke="#36d6c0" stroke-width="5" stroke-linecap="round" opacity=".7"/>
+</svg>

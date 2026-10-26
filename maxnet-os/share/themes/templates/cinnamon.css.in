@@ -1,8 +1,11 @@
-/* MaxNet theme colors adapted for Cinnamon. */
+/* MaxNet display theme adapted for Cinnamon. */
 #panel,
 .panel {
   background-color: @BG@;
+  background-image: @PANEL_BG@;
   color: @FG@;
+  font-family: @FONT@;
+  border-top: 1px solid @BORDER@;
 }
 
 .menu,
@@ -11,29 +14,55 @@
 .workspace-switcher {
   background-color: @SURFACE@;
   color: @FG@;
-  border: 1px solid @BORDER@;
+  border: @FRAME@;
+  border-radius: @RADIUS@;
+  font-family: @FONT@;
 }
 
 .menu-item:selected,
 .menu .menu-item:active,
 .button:checked {
   background-color: @ACCENT@;
+  background-image: @PANEL_BG@;
   color: @ACCENT_FG@;
+  border-color: @BORDER@;
 }
 
 .menu-item,
 .button {
   color: @FG@;
+  font-family: @FONT@;
 }
 
 .menu-item:hover,
 .button:hover {
   background-color: @ACCENT@;
+  background-image: @PANEL_BG@;
   color: @ACCENT_FG@;
+}
+
+.button,
+.menu-item {
+  border-radius: 2px;
+}
+
+.entry,
+StEntry {
+  background-color: @SURFACE@;
+  color: @FG@;
+  border: 1px solid @BORDER@;
+  selection-background-color: @ACCENT@;
+  selected-color: @ACCENT_FG@;
+}
+
+.separator,
+StSeparator {
+  background-color: @BORDER@;
 }
 
 .tooltip {
   background-color: @SURFACE@;
   color: @FG@;
   border: 1px solid @BORDER@;
+  font-family: @FONT@;
 }

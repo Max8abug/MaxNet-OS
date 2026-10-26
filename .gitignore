@@ -3,6 +3,7 @@
 # compiled output
 dist
 /maxnet-os/dist/
+/generated-artifacts/
 tmp
 out-tsc
 *.tsbuildinfo
@@ -54,3 +55,7 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+/maxnet-os-linuxmint-22.3-cinnamon-64bit.iso
+/maxnet-os-linuxmint-22.3-cinnamon-64bit.iso.sha256
+/maxos-0.4.0-cinnamon-64bit.iso
+/maxos-0.4.0-cinnamon-64bit.iso.sha256
