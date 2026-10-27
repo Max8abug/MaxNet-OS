@@ -31,8 +31,8 @@ For MaxOS package validation, inspect the `.deb` payload and install rules first
 
 **How to apply:** Compare source configuration with installed desktop-entry outputs and exact expected IDs before compressing the SquashFS.
 
-Large ISO download links on the Replit development domain only work while the API Server workflow is running; stopped workflows return 502. The connected GitHub integration can manage release metadata, but binary release-asset upload through this workspace failed even for a small checksum asset.
+Large ISO download links on the Replit development domain depend on the API Server workflow and workspace access. A GitHub Actions runner received a Replit HTML access page instead of ISO bytes, even while an in-workspace range request returned the correct chunk. The connected GitHub integration can manage release metadata, but binary release-asset upload through this workspace failed even for a small checksum asset.
 
-**Why:** In October 2026, ISO chunk downloads failed while the API workflow was stopped, and the GitHub upload endpoint rejected both small and large release assets.
+**Why:** In October 2026, the development URL was not a reliable public source for external CI, and the connector could not upload release assets.
 
-**How to apply:** Start and keep the API workflow running before sharing temporary ISO links. Confirm a binary upload path works before promising a durable GitHub release link.
+**How to apply:** Do not use a Replit development URL as an external CI source. Verify an unauthenticated external GET of the actual file bytes before promising a public release link; when paid storage is not approved, use a no-cost public host and include a reassembly/checksum path for split ISOs.
