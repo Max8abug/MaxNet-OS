@@ -15,11 +15,11 @@ install -Dm644 "$ROOT/VERSION" "$STAGE/usr/share/maxnet-os/VERSION"
 install -Dm644 "$ROOT/share/backgrounds/maxnet-os.svg" \
   "$STAGE/usr/share/backgrounds/maxnet-os.svg"
 
-while IFS='|' read -r theme_id label bg fg accent surface border accent_fg font_family frame radius panel_bg button_bg; do
+while IFS='|' read -r theme_id label bg fg accent surface border accent_fg font_family frame radius panel_bg button_bg title_top title_mid title_bottom title_text inactive_top inactive_bottom inactive_text close_bg frame_highlight frame_shadow wm_edge control_radius title_radius; do
   [[ -n "$theme_id" && "$theme_id" != \#* ]] || continue
   theme_name="MaxNet-$theme_id"
   theme_dir="$STAGE/usr/share/themes/$theme_name"
-  install -d "$theme_dir/cinnamon" "$theme_dir/gtk-3.0" "$theme_dir/gtk-4.0"
+  install -d "$theme_dir/cinnamon" "$theme_dir/gtk-3.0" "$theme_dir/gtk-4.0" "$theme_dir/metacity-1"
   cat > "$theme_dir/index.theme" <<EOF
 [Desktop Entry]
 Name=$theme_name
@@ -27,6 +27,7 @@ Comment=MaxNet $label desktop theme
 Type=X-GNOME-Metatheme
 Encoding=UTF-8
 GtkTheme=$theme_name
+MetacityTheme=$theme_name
 EOF
   for template in cinnamon/cinnamon.css gtk-3.0/gtk.css gtk-4.0/gtk.css; do
     sed \
@@ -41,6 +42,19 @@ EOF
       -e "s|@RADIUS@|$radius|g" \
       -e "s|@PANEL_BG@|$panel_bg|g" \
       -e "s|@BUTTON_BG@|$button_bg|g" \
+      -e "s|@TITLE_TOP@|$title_top|g" \
+      -e "s|@TITLE_MID@|$title_mid|g" \
+      -e "s|@TITLE_BOTTOM@|$title_bottom|g" \
+      -e "s|@TITLE_TEXT@|$title_text|g" \
+      -e "s|@INACTIVE_TOP@|$inactive_top|g" \
+      -e "s|@INACTIVE_BOTTOM@|$inactive_bottom|g" \
+      -e "s|@INACTIVE_TEXT@|$inactive_text|g" \
+      -e "s|@CLOSE_BG@|$close_bg|g" \
+      -e "s|@FRAME_HIGHLIGHT@|$frame_highlight|g" \
+      -e "s|@FRAME_SHADOW@|$frame_shadow|g" \
+      -e "s|@WM_EDGE@|$wm_edge|g" \
+      -e "s|@CONTROL_RADIUS@|$control_radius|g" \
+      -e "s|@TITLE_RADIUS@|$title_radius|g" \
       "$ROOT/share/themes/templates/${template##*/}.in" > "$theme_dir/$template"
   done
   sed \
@@ -57,6 +71,38 @@ EOF
     -e "s|@BUTTON_BG@|$button_bg|g" \
     "$ROOT/share/themes/templates/wallpaper.svg.in" \
     > "$STAGE/usr/share/backgrounds/maxnet-os-$theme_id.svg"
+
+  sed \
+    -e "s|@TITLE_TOP@|$title_top|g" \
+    -e "s|@TITLE_MID@|$title_mid|g" \
+    -e "s|@TITLE_BOTTOM@|$title_bottom|g" \
+    -e "s|@FRAME_HIGHLIGHT@|$frame_highlight|g" \
+    -e "s|@BORDER@|$border|g" \
+    "$ROOT/share/themes/templates/metacity-titlebar.svg.in" \
+    > "$theme_dir/metacity-1/titlebar-active.svg"
+  sed \
+    -e "s|@TITLE_TOP@|$inactive_top|g" \
+    -e "s|@TITLE_MID@|$inactive_bottom|g" \
+    -e "s|@TITLE_BOTTOM@|$inactive_bottom|g" \
+    -e "s|@FRAME_HIGHLIGHT@|$border|g" \
+    -e "s|@BORDER@|$frame_shadow|g" \
+    "$ROOT/share/themes/templates/metacity-titlebar.svg.in" \
+    > "$theme_dir/metacity-1/titlebar-inactive.svg"
+  sed \
+    -e "s|@BORDER@|$border|g" \
+    -e "s|@SURFACE@|$surface|g" \
+    -e "s|@FG@|$fg|g" \
+    -e "s|@ACCENT@|$accent|g" \
+    -e "s|@TITLE_TEXT@|$title_text|g" \
+    -e "s|@INACTIVE_TEXT@|$inactive_text|g" \
+    -e "s|@BUTTON_BG@|$surface|g" \
+    -e "s|@BUTTON_HOVER@|$accent|g" \
+    -e "s|@CLOSE_BG@|$close_bg|g" \
+    -e "s|@FRAME_HIGHLIGHT@|$frame_highlight|g" \
+    -e "s|@FRAME_SHADOW@|$frame_shadow|g" \
+    -e "s|@WM_EDGE@|$wm_edge|g" \
+    "$ROOT/share/themes/templates/metacity-theme-3.xml.in" \
+    > "$theme_dir/metacity-1/metacity-theme-3.xml"
 done < "$ROOT/share/themes/palette.tsv"
 
 while IFS= read -r -d '' file; do

@@ -6,24 +6,113 @@
 @define-color theme_selected_bg_color @ACCENT@;
 @define-color theme_selected_fg_color @ACCENT_FG@;
 @define-color theme_borders @BORDER@;
+@define-color window_bg_color @BG@;
+@define-color window_fg_color @FG@;
+@define-color view_bg_color @SURFACE@;
+@define-color view_fg_color @FG@;
+@define-color headerbar_bg_color @BG@;
+@define-color headerbar_fg_color @FG@;
+@define-color sidebar_bg_color @BG@;
+@define-color sidebar_fg_color @FG@;
+@define-color card_bg_color @SURFACE@;
+@define-color card_fg_color @FG@;
+@define-color popover_bg_color @SURFACE@;
+@define-color popover_fg_color @FG@;
+@define-color dialog_bg_color @BG@;
+@define-color dialog_fg_color @FG@;
+@define-color accent_color @ACCENT@;
+@define-color borders @BORDER@;
+@define-color titlebar_bg_color @TITLE_MID@;
+@define-color titlebar_fg_color @TITLE_TEXT@;
 
 * {
   font-family: @FONT@;
 }
 
 window,
-dialog {
-  background-color: @BG@;
+dialog,
+.background,
+window.background,
+dialog.background,
+.csd,
+.solid-csd {
+  background-color: @SURFACE@;
+  background-image: none;
   color: @FG@;
 }
 
 headerbar,
 .titlebar {
-  background-image: @PANEL_BG@;
+  min-height: 30px;
+  padding: 3px 8px;
+  background-image: linear-gradient(to bottom, @TITLE_TOP@ 0%, @TITLE_MID@ 52%, @TITLE_BOTTOM@ 100%);
+  background-color: @TITLE_MID@;
+  color: @TITLE_TEXT@;
+  border: 1px solid @BORDER@;
+  border-bottom-color: @FRAME_SHADOW@;
+  border-radius: @TITLE_RADIUS@ @TITLE_RADIUS@ 0 0;
+  box-shadow: inset 0 1px @FRAME_HIGHLIGHT@;
+}
+
+headerbar:backdrop,
+.titlebar:backdrop {
+  background-image: linear-gradient(to bottom, @INACTIVE_TOP@, @INACTIVE_BOTTOM@);
+  background-color: @INACTIVE_BOTTOM@;
+  color: @INACTIVE_TEXT@;
+}
+
+headerbar button,
+.titlebar button {
+  min-width: 22px;
+  min-height: 22px;
+  padding: 1px 5px;
+  background-image: @BUTTON_BG@;
+  background-color: @SURFACE@;
+  color: @FG@;
+  border: 1px solid @BORDER@;
+  border-radius: @CONTROL_RADIUS@;
+  box-shadow: inset 0 1px @FRAME_HIGHLIGHT@, 0 1px 2px @FRAME_SHADOW@;
+}
+
+headerbar button:hover,
+.titlebar button:hover {
+  background-image: none;
   background-color: @ACCENT@;
   color: @ACCENT_FG@;
-  border-color: @BORDER@;
-  border-radius: @RADIUS@;
+  border-color: @FRAME_HIGHLIGHT@;
+}
+
+headerbar button:active,
+.titlebar button:active {
+  background-image: none;
+  background-color: @BORDER@;
+  color: @FG@;
+  box-shadow: inset 0 1px 3px @FRAME_SHADOW@;
+}
+
+headerbar button.close,
+.titlebar button.close {
+  background-image: none;
+  background-color: @CLOSE_BG@;
+  color: @TITLE_TEXT@;
+}
+
+window:backdrop,
+dialog:backdrop,
+.background:backdrop {
+  background-color: @SURFACE@;
+  background-image: none;
+  color: @FG@;
+}
+
+popover,
+popover.background,
+menu,
+tooltip {
+  background-color: @SURFACE@;
+  background-image: none;
+  color: @FG@;
+  border: 1px solid @BORDER@;
 }
 
 button {
@@ -47,6 +136,7 @@ textview,
 .view,
 treeview.view {
   background-color: @SURFACE@;
+  background-image: none;
   color: @FG@;
   border-color: @BORDER@;
 }
@@ -59,6 +149,7 @@ selection,
 
 tooltip {
   background-color: @SURFACE@;
+  background-image: none;
   color: @FG@;
   border: 1px solid @BORDER@;
 }

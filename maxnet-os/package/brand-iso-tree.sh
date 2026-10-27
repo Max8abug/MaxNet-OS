@@ -10,6 +10,7 @@ trap 'rm -rf "$WORK"' EXIT
 python3 - "$ISO_TREE" "$VERSION" <<'PY'
 from pathlib import Path
 import stat
+import re
 import sys
 
 tree = Path(sys.argv[1])
@@ -27,6 +28,23 @@ def replace_required(relative, replacements):
             raise SystemExit(f"Expected branding text not found in {relative}: {old}")
     path.chmod(path.stat().st_mode | stat.S_IWUSR)
     path.write_text(text)
+
+def replace_versioned(relative, replacements):
+    path = tree / relative
+    if not path.is_file():
+        raise SystemExit(f"ISO boot file is missing: {relative}")
+    text = path.read_text()
+    for pattern, replacement in replacements:
+        text = re.sub(pattern, replacement, text)
+    path.chmod(path.stat().st_mode | stat.S_IWUSR)
+    path.write_text(text)
+
+replace_versioned("boot/grub/grub.cfg", [
+    (r"Start MaxOS [0-9.]+ Cinnamon 64-bit", f"Start MaxOS {version} Cinnamon 64-bit"),
+])
+replace_versioned("isolinux/live.cfg", [
+    (r"menu title Welcome to MaxOS [0-9.]+ 64-bit", f"menu title Welcome to MaxOS {version} 64-bit"),
+])
 
 replace_required("boot/grub/grub.cfg", {
     "Start Linux Mint 22.3 Cinnamon 64-bit (compatibility mode)": (
