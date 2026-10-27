@@ -2,3 +2,4 @@
 - [MaxNet OS offline login](maxnet-os-auth.md) — Keep the Mint login credential local and offline-capable; MaxNet account sync is for settings, not OS credentials.
 - [MaxNet OS theme identity](maxnet-os-theme-identity.md) — Preserve the website's eight theme IDs as the OS choices and offer a local first-use theme picker.
 - [Mint ISO remastering in Replit](mint-iso-remaster.md) — Preserve fakeroot metadata, run long ISO writes in managed processes, and remove stale rootfs staging before packaging.
+- [MaxOS release publishing](maxos-release-publishing.md) — Keep updater packages on GitHub releases and publish each full ISO, using moonbat.ddns.net if needed.
