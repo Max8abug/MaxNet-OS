@@ -1,0 +1,182 @@
+name: Publish MaxOS VM test ISO
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_domain:
+        description: Active Replit API Server domain, without https://
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  publish-test-iso:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Download, verify, and split the ISO
+        shell: bash
+        env:
+          SOURCE_DOMAIN: ${{ inputs.source_domain }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$SOURCE_DOMAIN" =~ ^[A-Za-z0-9-]+\.kirk\.replit\.dev$ ]]; then
+            echo "The source must be a Replit kirk development domain." >&2
+            exit 1
+          fi
+
+          BASE_URL="https://${SOURCE_DOMAIN}"
+          WORK="$RUNNER_TEMP/maxos-iso"
+          ISO="$WORK/MaxOS-0.4.6-cinnamon-64bit.iso"
+          EXPECTED_SIZE=3088973824
+          EXPECTED_SHA256="ebead706a9a41c5c161ceacb37d076a4fc4e955b03a0c4119313fc18a6e1b1a9"
+          CHUNK_SIZE=268435456
+          CHUNK_COUNT=$(((EXPECTED_SIZE + CHUNK_SIZE - 1) / CHUNK_SIZE))
+
+          mkdir -p "$WORK"
+          : > "$ISO"
+          for ((part = 1; part <= CHUNK_COUNT; part++)); do
+            start=$(((part - 1) * CHUNK_SIZE))
+            remaining=$((EXPECTED_SIZE - start))
+            expected_part_size="$CHUNK_SIZE"
+            if ((remaining < CHUNK_SIZE)); then
+              expected_part_size="$remaining"
+            fi
+
+            part_file="$WORK/part-${part}.bin"
+            part_url="$BASE_URL/api/download/maxnet-os.part/$part"
+            echo "Downloading chunk $part of $CHUNK_COUNT..."
+            curl --fail --location --silent --show-error \
+              --retry 6 --retry-all-errors --retry-delay 2 \
+              --output "$part_file" "$part_url"
+
+            actual_part_size="$(stat -c '%s' -- "$part_file")"
+            if [[ "$actual_part_size" != "$expected_part_size" ]]; then
+              echo "Chunk $part has $actual_part_size bytes; expected $expected_part_size." >&2
+              exit 1
+            fi
+
+            cat -- "$part_file" >> "$ISO"
+            rm -- "$part_file"
+          done
+
+          actual_size="$(stat -c '%s' -- "$ISO")"
+          if [[ "$actual_size" != "$EXPECTED_SIZE" ]]; then
+            echo "ISO has $actual_size bytes; expected $EXPECTED_SIZE." >&2
+            exit 1
+          fi
+
+          actual_sha256="$(sha256sum -- "$ISO" | awk '{print $1}')"
+          if [[ "$actual_sha256" != "$EXPECTED_SHA256" ]]; then
+            echo "ISO checksum mismatch: $actual_sha256" >&2
+            exit 1
+          fi
+
+          split -b 1536M --numeric-suffixes=1 --suffix-length=2 \
+            "$ISO" "$WORK/maxos-0.4.6-cinnamon-64bit.iso.part"
+          printf '%s  %s\n' "$EXPECTED_SHA256" "MaxOS-0.4.6-cinnamon-64bit.iso" \
+            > "$WORK/maxos-0.4.6-cinnamon-64bit.iso.sha256"
+
+          cat > "$WORK/download-maxos-0.4.6.sh" <<'SCRIPT'
+          #!/usr/bin/env bash
+          set -euo pipefail
+
+          TAG="maxos-0.4.6-iso-test-1"
+          BASE_URL="https://github.com/Max8abug/MaxNet-OS/releases/download/$TAG"
+          OUTPUT_NAME="MaxOS-0.4.6-cinnamon-64bit.iso"
+          EXPECTED_SIZE=3088973824
+          EXPECTED_SHA256="ebead706a9a41c5c161ceacb37d076a4fc4e955b03a0c4119313fc18a6e1b1a9"
+          OUTPUT_PATH="$PWD/$OUTPUT_NAME"
+          PARTIAL_PATH="$(mktemp "$OUTPUT_PATH.partial.XXXXXX")"
+          trap 'rm -f -- "$PARTIAL_PATH"' EXIT
+
+          if [[ -e "$OUTPUT_PATH" ]]; then
+            echo "Destination already exists: $OUTPUT_PATH" >&2
+            exit 1
+          fi
+
+          chunk_names=(
+            "maxos-0.4.6-cinnamon-64bit.iso.part01"
+            "maxos-0.4.6-cinnamon-64bit.iso.part02"
+          )
+          chunk_sizes=(1610612736 1478361088)
+          offset=0
+
+          for index in "${!chunk_names[@]}"; do
+            chunk="${chunk_names[$index]}"
+            chunk_size="${chunk_sizes[$index]}"
+            expected_total=$((offset + chunk_size))
+            downloaded=0
+            echo "Downloading $chunk..."
+
+            for attempt in 1 2 3 4 5 6; do
+              truncate -s "$offset" "$PARTIAL_PATH"
+              if curl --fail --location --progress-bar --retry 4 \
+                --retry-all-errors --retry-delay 2 \
+                "$BASE_URL/$chunk" >> "$PARTIAL_PATH"; then
+                actual_total="$(stat -c '%s' -- "$PARTIAL_PATH")"
+                if [[ "$actual_total" == "$expected_total" ]]; then
+                  downloaded=1
+                  break
+                fi
+              fi
+              if ((attempt < 6)); then
+                echo "Retrying $chunk after attempt $attempt..." >&2
+                sleep 2
+              fi
+            done
+
+            if ((downloaded == 0)); then
+              echo "Could not download $chunk." >&2
+              exit 1
+            fi
+            offset="$expected_total"
+          done
+
+          actual_size="$(stat -c '%s' -- "$PARTIAL_PATH")"
+          if [[ "$actual_size" != "$EXPECTED_SIZE" ]]; then
+            echo "ISO has $actual_size bytes; expected $EXPECTED_SIZE." >&2
+            exit 1
+          fi
+          actual_sha256="$(sha256sum -- "$PARTIAL_PATH" | awk '{print $1}')"
+          if [[ "$actual_sha256" != "$EXPECTED_SHA256" ]]; then
+            echo "Checksum mismatch: $actual_sha256" >&2
+            exit 1
+          fi
+
+          mv -- "$PARTIAL_PATH" "$OUTPUT_PATH"
+          trap - EXIT
+          echo "Download complete: $OUTPUT_PATH"
+          echo "SHA-256: $actual_sha256"
+          SCRIPT
+
+          cat > "$WORK/release-notes.md" <<'NOTES'
+          VM-test ISO for MaxOS 0.4.6. This is a prerelease and is not a Debian package update.
+
+          Linux: download `download-maxos-0.4.6.sh` and run `bash download-maxos-0.4.6.sh`. It fetches both ISO parts, assembles the ISO, and verifies its SHA-256.
+
+          ISO size: 3,088,973,824 bytes
+          SHA-256: ebead706a9a41c5c161ceacb37d076a4fc4e955b03a0c4119313fc18a6e1b1a9
+          NOTES
+
+      - name: Publish the prerelease assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RELEASE_TAG: maxos-0.4.6-iso-test-1
+          WORK: ${{ runner.temp }}/maxos-iso
+        run: |
+          set -euo pipefail
+          gh release create "$RELEASE_TAG" \
+            --repo "$REPO" \
+            "$WORK/maxos-0.4.6-cinnamon-64bit.iso.part01" \
+            "$WORK/maxos-0.4.6-cinnamon-64bit.iso.part02" \
+            "$WORK/maxos-0.4.6-cinnamon-64bit.iso.sha256" \
+            "$WORK/download-maxos-0.4.6.sh" \
+            --draft --prerelease \
+            --title "MaxOS 0.4.6 Cinnamon VM Test ISO" \
+            --notes-file "$WORK/release-notes.md"
+          gh release edit "$RELEASE_TAG" --repo "$REPO" --draft=false --prerelease
