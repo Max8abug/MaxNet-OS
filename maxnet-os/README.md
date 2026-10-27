@@ -14,13 +14,19 @@ The OS theme chooser includes the same theme IDs as MaxNet:
 - Gold picture frame
 - Silver picture frame
 
-The theme IDs and names match MaxNet's `THEME_OPTIONS`. Each desktop theme now includes native Cinnamon/Muffin window decorations, GTK 3/4 titlebars and controls, and opaque content surfaces, using the gradients, frame colors, and type styles from the matching MaxNet web theme. Native Linux cannot reproduce browser-only blur exactly, so Vista glass is rendered as an opaque, glossy frame instead of a see-through window. Choose **MaxNet OS Themes** from the application menu, or run `maxnet-os --choose-theme`. A first-login chooser appears until that local user picks a theme. The selected theme is passed to MaxNet when a launcher opens. If a signed-in user changes the theme in MaxNet, **Sync theme to MaxOS** asks the OS to confirm applying it locally.
+The theme IDs and names match MaxNet's `THEME_OPTIONS`. Each desktop theme now includes native Cinnamon/Muffin window decorations, GTK 3/4 titlebars and controls, and opaque content surfaces, using the gradients, frame colors, and type styles from the matching MaxNet web theme. Native Linux cannot reproduce browser-only blur exactly, so Vista glass is rendered as an opaque, glossy frame instead of a see-through window. Choose **MaxNet OS Themes** from the application menu, or run `maxnet-os --choose-theme`. If account sync is skipped, a first-login chooser offers a local theme. The selected theme is passed to MaxNet when a launcher opens.
 
 ## MaxNet applications in the MaxOS Start menu
 
 All 22 MaxNet feature launchers appear together in a **MaxNet** category in the Cinnamon application menu: sign-in, Chatroom, Forums, Direct Messages, Network Feed/People/Wiki, Photo Gallery, Users, Guestbook, Visitor Counter, Planner, Site News, Games, Eaglercraft, My Page Editor, Synced YouTube, Polls, Music Player, Playlists, Drawing Pad, and MaxNet Display Settings. The MaxNet OS home launcher is in that same category. The panel menu button is branded **Start** with the MaxNet logo; when the server is reachable, MaxOS uses the same logo configured on the website and caches it for offline use.
 
-The **Sign in to MaxNet** launcher uses the normal MaxNet account dialog and keeps its session in a separate persistent browser profile. Linux Mint's own login remains local, so it works even when MaxNet is offline. Signed-in users can sync their MaxNet display theme to the local Cinnamon theme and wallpaper after confirming the change. The local OS login PIN/password is never sent to MaxNet or synced; it is managed by Linux Mint, and the same local credential is also used for `sudo`.
+## MaxNet account settings during setup
+
+On first desktop startup, MaxOS offers to sign in to MaxNet and sync the signed-in account's display theme, profile background, timezone, rank, MaxNet permissions, and currently available MaxNet apps. The website uses its normal login dialog. The MaxOS sync helper receives only an expiring, one-time authorization code and settings snapshot; it never handles the MaxNet password or browser session. The browser stores sign-in locally so MaxNet apps can stay signed in. Review and confirm the settings on the computer before applying them. MaxOS does not change the Linux system timezone; MaxNet continues to use the account's timezone preference inside its apps. Use **Sync MaxNet Account** in the Start menu or run `maxnet-os --sync-account` to refresh the snapshot later.
+
+Synced app availability controls MaxOS's launcher visibility, not site authorization; MaxNet continues to enforce access to every feature. A MaxNet rank or site permission never grants Linux administrator or `sudo` access. The sync snapshot is stored in the signed-in Linux user's private configuration. If MaxNet is offline, skip account sync and continue with the local desktop; the OS login, local theme, wallpaper, and apps remain usable offline.
+
+The **Sign in to MaxNet** launcher uses the normal MaxNet account dialog and keeps its session in a separate persistent browser profile. The local OS login PIN/password is never sent to MaxNet or synced; it is managed by Linux Mint, and the same local credential is also used for `sudo`.
 
 App launch supports sign-in, Chatroom, Forums, Direct Messages, Network, Eaglercraft, and the other MaxNet apps listed in the menu. Each feature launcher opens the matching MaxNet component without the website's desktop, taskbar, or navigation shell. Chromium/Chrome/Brave uses a native app window without browser controls; Firefox shows the same app-only page with its browser controls.
 
@@ -30,7 +36,7 @@ On Linux Mint or Debian with `dpkg-deb` installed:
 
 ```bash
 ./maxnet-os/package/build-deb.sh
-sudo apt install ./maxnet-os/dist/maxnet-os_0.4.4_$(dpkg --print-architecture).deb
+sudo apt install ./maxnet-os/dist/maxnet-os_0.4.5_$(dpkg --print-architecture).deb
 ```
 
 The launcher defaults to the confirmed MaxNet host. Use **MaxNet OS → Configure** (or run `maxnet-os configure`) to change it. A per-user override is stored under `~/.config/maxnet-os/settings.conf`; the chosen theme is stored separately in `~/.config/maxnet-os/theme`. This package never stores a MaxNet password or session token.

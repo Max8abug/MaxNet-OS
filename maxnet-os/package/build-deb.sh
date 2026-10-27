@@ -13,6 +13,8 @@ sed -i "s/^Version: .*/Version: $VERSION/" "$STAGE/DEBIAN/control"
 install -Dm755 "$ROOT/bin/maxnet-os" "$STAGE/usr/bin/maxnet-os"
 install -Dm755 "$ROOT/bin/maxnet-os-sync-logo" "$STAGE/usr/bin/maxnet-os-sync-logo"
 install -Dm644 "$ROOT/VERSION" "$STAGE/usr/share/maxnet-os/VERSION"
+install -Dm644 "$ROOT/share/applications/features.tsv" \
+  "$STAGE/usr/share/maxnet-os/features.tsv"
 install -Dm644 "$ROOT/share/backgrounds/maxnet-os.svg" \
   "$STAGE/usr/share/backgrounds/maxnet-os.svg"
 
