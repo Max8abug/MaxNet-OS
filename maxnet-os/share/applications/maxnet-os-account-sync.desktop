@@ -6,5 +6,5 @@ Comment=Sync your MaxNet theme, background, permissions, and available apps
 Exec=maxnet-os --sync-account
 Icon=maxnet-signin
 Terminal=false
-Categories=X-MaxNet;Settings;
+Categories=X-MaxNet;
 StartupNotify=true

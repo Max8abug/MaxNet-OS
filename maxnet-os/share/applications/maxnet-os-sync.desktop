@@ -1,7 +1,7 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=MaxNet OS Account Sync Handler
+Name=MaxOS Account Sync Handler
 Comment=Receive approved MaxNet account settings for this computer
 Exec=maxnet-os --handle-sync %u
 Icon=maxnet-theme

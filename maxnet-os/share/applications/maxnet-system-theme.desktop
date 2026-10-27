@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=MaxNet OS Themes
+Name=MaxOS Themes
 Comment=Choose a desktop theme adapted from MaxNet's display themes
 Exec=maxnet-os --choose-theme
 Icon=maxnet-theme
 Terminal=false
-Categories=Settings;
+Categories=X-MaxOS-System;

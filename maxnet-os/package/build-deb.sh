@@ -141,6 +141,8 @@ install -Dm644 "$ROOT/share/menus/maxnet-os.menu" \
   "$STAGE/etc/xdg/menus/applications-merged/maxnet-os.menu"
 install -Dm644 "$ROOT/share/desktop-directories/maxnet-os.directory" \
   "$STAGE/usr/share/desktop-directories/maxnet-os.directory"
+install -Dm644 "$ROOT/share/desktop-directories/maxnet-os-system.directory" \
+  "$STAGE/usr/share/desktop-directories/maxnet-os-system.directory"
 
 install -Dm644 "$ROOT/share/maxnet-os/settings.conf" \
   "$STAGE/etc/maxnet-os/settings.conf"
