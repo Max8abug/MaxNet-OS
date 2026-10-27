@@ -7,6 +7,12 @@ The Replit shell does not gain real root privileges through `sudo`. For a Squash
 
 When editing the ISO filesystem tree with `xorriso -osirrox`, assume extracted files are read-only and make staged copies writable before editing. Update `md5sum.txt` for every changed or added file, and inspect boot-theme references rather than assuming all referenced splash files exist in the source ISO.
 
+When the staged ISO tree is only an overlay, preserve the base ISO's complete `md5sum.txt` and update hashes for changed or added entries. Do not regenerate the manifest from the sparse overlay directory.
+
+**Why:** An overlay tree does not contain untouched ISO files, so regenerating its manifest silently drops their checksums.
+
+**How to apply:** Extract the full manifest from the base ISO, refresh each mapped file's hash, and verify the updated entries against the final ISO.
+
 Workspace storage can hit a write limit even when `df` reports ample host capacity. Remove redundant extracted rootfs copies and incomplete ISO outputs before packaging; keep only the source, active staged tree, and one working rootfs. Preflight required utilities before unpacking, and keep long-running fakeroot logic in a standalone helper script rather than nested shell-quoted Python.
 
 **Why:** The container is unprivileged, while the live Mint image expects target-root groups and package state that do not match the host environment. Restrictive file modes, stale manifests, short-lived shell processes, missing utilities, fragile nested quoting, and redundant multi-gigabyte staging can all interrupt a remaster.
