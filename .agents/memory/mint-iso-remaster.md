@@ -33,6 +33,6 @@ For MaxOS package validation, inspect the `.deb` payload and install rules first
 
 Large ISO download links on the Replit development domain are not reliably public to external clients. A GitHub Actions runner and the user's Linux curl received a Replit HTML access page instead of ISO bytes, even while an in-workspace range request returned the correct chunk. The connected GitHub integration can manage release metadata, but binary release-asset upload through this workspace failed even for a small checksum asset.
 
-**Why:** In October 2026, the development URL was not a reliable public source for external CI, and the connector could not upload release assets.
+**Why:** In October 2026, external clients received Replit's access page until Private preview was disabled; the user then confirmed the single-file ISO download worked. The connector also could not upload release assets.
 
 **How to apply:** Replit development URLs are private by default. To use one as a public download, the owner must turn off **Private preview** under **Tools & files → Networking**, which makes the whole running app reachable to anyone with the URL. Check its routes for private data, then verify from an unauthenticated external client before sharing. When paid storage is not approved, use a no-cost public host and include a reassembly/checksum path only if the user accepts split files.
