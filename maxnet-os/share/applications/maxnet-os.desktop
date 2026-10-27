@@ -7,5 +7,5 @@ Comment=Open the MaxNet social desktop
 Exec=maxnet-os --feature home
 Icon=maxnet
 Terminal=false
-Categories=Network;WebBrowser;
+Categories=X-MaxNet;
 StartupWMClass=maxnet-os

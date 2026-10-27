@@ -18,7 +18,7 @@ The theme IDs and names match MaxNet's `THEME_OPTIONS`. Each desktop theme now i
 
 ## MaxNet applications in the MaxOS Start menu
 
-All MaxNet website launchers appear together in a **MaxNet** category in the Cinnamon application menu: sign-in, Chatroom, Forums, Direct Messages, Network Feed/People/Wiki, Photo Gallery, Users, Guestbook, Visitor Counter, Planner, Site News, Games, Eaglercraft, My Page Editor, Synced YouTube, Polls, Music Player, Playlists, Drawing Pad, and MaxNet Display Settings. The panel menu button is branded **Start** with the MaxNet logo; when the server is reachable, MaxOS uses the same logo configured on the website and caches it for offline use.
+All 22 MaxNet feature launchers appear together in a **MaxNet** category in the Cinnamon application menu: sign-in, Chatroom, Forums, Direct Messages, Network Feed/People/Wiki, Photo Gallery, Users, Guestbook, Visitor Counter, Planner, Site News, Games, Eaglercraft, My Page Editor, Synced YouTube, Polls, Music Player, Playlists, Drawing Pad, and MaxNet Display Settings. The MaxNet OS home launcher is in that same category. The panel menu button is branded **Start** with the MaxNet logo; when the server is reachable, MaxOS uses the same logo configured on the website and caches it for offline use.
 
 The **Sign in to MaxNet** launcher uses the normal MaxNet account dialog and keeps its session in a separate persistent browser profile. Linux Mint's own login remains local, so it works even when MaxNet is offline. Signed-in users can sync their MaxNet display theme to the local Cinnamon theme and wallpaper after confirming the change. The local OS login PIN/password is never sent to MaxNet or synced; it is managed by Linux Mint, and the same local credential is also used for `sudo`.
 
