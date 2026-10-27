@@ -142,8 +142,29 @@ first_run() {
 
 apply_start_menu_icon() {
   command -v gsettings >/dev/null 2>&1 || return 0
+  theme_slug
+
+  if gsettings writable org.cinnamon app-menu-label >/dev/null 2>&1; then
+    gsettings set org.cinnamon app-menu-label "Start" || {
+      printf '%s\n' "Could not set the Cinnamon Start menu label." >&2
+    }
+  fi
+
   gsettings writable org.cinnamon app-menu-icon-name >/dev/null 2>&1 || return 0
-  if ! gsettings set org.cinnamon app-menu-icon-name "maxnet-os-start"; then
+  local icon_name="maxnet-os-start"
+  local icon_sync
+  if command -v maxnet-os-sync-logo >/dev/null 2>&1; then
+    icon_sync="$(command -v maxnet-os-sync-logo)"
+  elif [[ -x "$script_dir/maxnet-os-sync-logo" ]]; then
+    icon_sync="$script_dir/maxnet-os-sync-logo"
+  else
+    icon_sync=""
+  fi
+  if [[ -n "$icon_sync" ]]; then
+    icon_name="$("$icon_sync" "$base_url" "$THEME_ID" 2>/dev/null || printf '%s' "$icon_name")"
+    [[ -n "$icon_name" ]] || icon_name="maxnet-os-start"
+  fi
+  if ! gsettings set org.cinnamon app-menu-icon-name "$icon_name"; then
     printf '%s\n' "Could not set the Cinnamon Start menu icon." >&2
   fi
 }
@@ -431,7 +452,9 @@ open_feature() {
 
   local url="${base_url%/}/?maxnet-os=1"
   if [[ "$feature" != "home" ]]; then
-    url+="&maxnet-feature=$feature"
+    local launch_id
+    launch_id="$(date +%s%N)-$$"
+    url+="&maxnet-feature=$feature&maxnet-view=app&maxnet-launch-id=$launch_id"
   fi
   if [[ -r "$theme_config" ]]; then
     theme_slug
@@ -444,17 +467,23 @@ open_feature() {
 
   register_sync_handler
   local profile="${XDG_DATA_HOME:-$HOME/.local/share}/maxnet-os/chromium"
-  local browser
+  local browser wm_class="maxnet-os" window_title="$APP_NAME"
+  if [[ "$feature" != "home" ]]; then
+    wm_class="maxnet-$feature"
+    window_title="MaxNet - $feature"
+  fi
   for browser in chromium chromium-browser google-chrome-stable google-chrome brave-browser; do
     if command -v "$browser" >/dev/null 2>&1; then
       install -d -m 700 "$profile"
       exec "$browser" --app="$url" --new-window \
-        --user-data-dir="$profile" --class=maxnet-os --name="MaxNet OS"
+        --user-data-dir="$profile" --class="$wm_class" --name="$window_title"
     fi
   done
 
   if command -v firefox >/dev/null 2>&1; then
-    exec firefox --new-window "$url"
+    local firefox_profile="${XDG_DATA_HOME:-$HOME/.local/share}/maxnet-os/firefox"
+    install -d -m 700 "$firefox_profile"
+    exec firefox --new-window --profile "$firefox_profile" "$url"
   fi
   if command -v xdg-open >/dev/null 2>&1; then
     exec xdg-open "$url"

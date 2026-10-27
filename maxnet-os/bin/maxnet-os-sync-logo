@@ -1,0 +1,143 @@
+#!/usr/bin/env python3
+"""Cache the current MaxNet site logo as a Cinnamon icon, with offline fallback."""
+
+from __future__ import annotations
+
+import base64
+import binascii
+import hashlib
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+from urllib.error import URLError
+from urllib.parse import urlsplit
+from urllib.request import Request, urlopen
+
+FALLBACK = "maxnet-os-start"
+MAX_RESPONSE_BYTES = 16 * 1024 * 1024
+MAX_LOGO_BYTES = 300_000
+FORMATS = {"png": "png", "jpeg": "jpg", "gif": "gif", "webp": "webp"}
+DATA_URL = re.compile(r"^data:image/(png|jpeg|gif|webp);base64,([A-Za-z0-9+/]+={0,2})$")
+ICON_NAME = re.compile(r"^maxnet-site-start-[a-f0-9]{16}$")
+
+
+def data_home() -> Path:
+    return Path(os.environ.get("XDG_DATA_HOME", str(Path.home() / ".local/share")))
+
+
+def cache_home() -> Path:
+    return Path(os.environ.get("XDG_CACHE_HOME", str(Path.home() / ".cache")))
+
+
+def cached_icon_name() -> str:
+    pointer = cache_home() / "maxnet-os" / "site-start-icon"
+    try:
+        name = pointer.read_text(encoding="ascii").strip()
+        if not ICON_NAME.fullmatch(name):
+            return FALLBACK
+        return name if any(
+            (data_home() / "icons/hicolor/128x128/apps" / f"{name}.{extension}").is_file()
+            for extension in FORMATS.values()
+        ) else FALLBACK
+    except OSError:
+        return FALLBACK
+
+
+def selected_logo(settings: dict, dark_theme: bool) -> str:
+    light_logo = settings.get("logoDataUrl")
+    dark_logo = settings.get("darkLogoDataUrl")
+    selected = dark_logo if dark_theme and isinstance(dark_logo, str) and dark_logo else light_logo
+    return selected if isinstance(selected, str) else ""
+
+
+def parse_logo(value: str) -> tuple[bytes, str] | None:
+    if len(value) > 400_000:
+        return None
+    match = DATA_URL.fullmatch(value)
+    if not match:
+        return None
+    try:
+        content = base64.b64decode(match.group(2), validate=True)
+    except (ValueError, binascii.Error):
+        return None
+    if not content or len(content) > MAX_LOGO_BYTES:
+        return None
+    return content, FORMATS[match.group(1)]
+
+
+def fetch_settings(base_url: str) -> dict:
+    parsed = urlsplit(base_url)
+    if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password:
+        raise ValueError("MaxNet URL must be HTTPS")
+    endpoint = base_url.rstrip("/") + "/api/site-settings"
+    request = Request(endpoint, headers={"Accept": "application/json", "User-Agent": "MaxOS-logo-sync/1"})
+    with urlopen(request, timeout=2.5) as response:
+        if response.status != 200:
+            raise ValueError("MaxNet settings request failed")
+        raw = response.read(MAX_RESPONSE_BYTES + 1)
+    if len(raw) > MAX_RESPONSE_BYTES:
+        raise ValueError("MaxNet settings response is too large")
+    settings = json.loads(raw)
+    if not isinstance(settings, dict):
+        raise ValueError("MaxNet settings response is invalid")
+    return settings
+
+
+def save_icon(content: bytes, extension: str) -> str:
+    icon_name = f"maxnet-site-start-{hashlib.sha256(content).hexdigest()[:16]}"
+    icon_dir = data_home() / "icons/hicolor/128x128/apps"
+    icon_theme_dir = data_home() / "icons/hicolor"
+    icon_dir.mkdir(parents=True, exist_ok=True)
+
+    theme_index = icon_theme_dir / "index.theme"
+    system_index = Path("/usr/share/icons/hicolor/index.theme")
+    if not theme_index.exists() and system_index.is_file():
+        theme_index.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(system_index, theme_index)
+
+    destination = icon_dir / f"{icon_name}.{extension}"
+    if not destination.exists():
+        temporary = destination.with_suffix(destination.suffix + ".tmp")
+        temporary.write_bytes(content)
+        os.replace(temporary, destination)
+
+    cache_dir = cache_home() / "maxnet-os"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    pointer = cache_dir / "site-start-icon"
+    temporary_pointer = pointer.with_suffix(".tmp")
+    temporary_pointer.write_text(icon_name + "\n", encoding="ascii")
+    os.replace(temporary_pointer, pointer)
+
+    updater = shutil.which("gtk-update-icon-cache")
+    if updater and theme_index.is_file():
+        subprocess.run(
+            [updater, "-f", str(icon_theme_dir)],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+    return icon_name
+
+
+def main() -> int:
+    if len(sys.argv) != 3:
+        print(FALLBACK)
+        return 0
+    base_url, theme_id = sys.argv[1], sys.argv[2]
+    try:
+        settings = fetch_settings(base_url)
+        logo = parse_logo(selected_logo(settings, theme_id in {"classic-dark", "xp-dark", "vista-dark"}))
+        if logo is None and theme_id in {"classic-dark", "xp-dark", "vista-dark"}:
+            logo = parse_logo(settings.get("logoDataUrl", ""))
+        print(save_icon(*logo) if logo is not None else cached_icon_name())
+    except (OSError, ValueError, URLError, json.JSONDecodeError):
+        print(cached_icon_name())
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
