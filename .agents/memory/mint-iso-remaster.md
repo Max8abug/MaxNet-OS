@@ -19,6 +19,12 @@ Workspace storage can hit a per-project write limit even when `df` reports ample
 
 **How to apply:** Check privilege behavior, required commands, and generated-artifact disk usage before extraction. Use a single fakeroot session for the root filesystem lifecycle, run long ISO work in a tracked background task or managed workflow, and validate package records and boot metadata. After recompression, verify the full manifest while the complete tree exists, then delete the rootfs and prune untouched tree files before xorriso writes the output. Keep embedded scripts in a helper file and syntax-check them before the expensive run.
 
+This workspace's `/tmp` is a 4 GiB tmpfs, too small for an unpacked Mint live rootfs. Use it only for the compressed source SquashFS and the sparse boot-file overlay; keep the expanded rootfs in workspace staging after removing failed or redundant copies, and never extract the full ISO tree there.
+
+**Why:** Duplicating the full ISO tree and expanded rootfs together exceeded the workspace write quota even though the host filesystem had ample free space.
+
+**How to apply:** Extract only the required boot files, manifest, and compressed SquashFS from the ISO. Remove the compressed source from `/tmp` after unpacking, write the new SquashFS there, then delete the expanded rootfs before writing the final ISO.
+
 For MaxOS package validation, inspect the `.deb` payload and install rules first. Source tables can be build-time inputs that generate desktop entries rather than files installed in the live rootfs. Validate each configured feature's expected launcher and category, not a presumed source-file location or the total count of similarly named launchers.
 
 **Why:** A rootfs check can reject a valid package when it assumes a source table ships at runtime or overlooks separate home and theme launchers.
