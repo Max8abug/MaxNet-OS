@@ -30,3 +30,9 @@ For MaxOS package validation, inspect the `.deb` payload and install rules first
 **Why:** A rootfs check can reject a valid package when it assumes a source table ships at runtime or overlooks separate home and theme launchers.
 
 **How to apply:** Compare source configuration with installed desktop-entry outputs and exact expected IDs before compressing the SquashFS.
+
+Large ISO download links on the Replit development domain only work while the API Server workflow is running; stopped workflows return 502. The connected GitHub integration can manage release metadata, but binary release-asset upload through this workspace failed even for a small checksum asset.
+
+**Why:** In October 2026, ISO chunk downloads failed while the API workflow was stopped, and the GitHub upload endpoint rejected both small and large release assets.
+
+**How to apply:** Start and keep the API workflow running before sharing temporary ISO links. Confirm a binary upload path works before promising a durable GitHub release link.
