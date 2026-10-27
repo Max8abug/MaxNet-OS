@@ -35,4 +35,4 @@ Large ISO download links on the Replit development domain depend on the API Serv
 
 **Why:** In October 2026, the development URL was not a reliable public source for external CI, and the connector could not upload release assets.
 
-**How to apply:** Do not use a Replit development URL as an external CI source. Verify an unauthenticated external GET of the actual file bytes before promising a public release link; when paid storage is not approved, use a no-cost public host and include a reassembly/checksum path for split ISOs.
+**How to apply:** A direct browser download can use the single-file `res.download` route while the API workflow is running; verify a real byte-range GET and keep the workflow active. Do not use a Replit development URL as an external CI source. When paid storage is not approved, use a no-cost public host and include a reassembly/checksum path for split ISOs.
