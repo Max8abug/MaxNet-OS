@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="40" viewBox="0 0 720 40" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="title" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="@TITLE_TOP@"/>
+      <stop offset=".48" stop-color="@TITLE_MID@"/>
+      <stop offset="1" stop-color="@TITLE_BOTTOM@"/>
+    </linearGradient>
+    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="@FRAME_HIGHLIGHT@" stop-opacity=".48"/>
+      <stop offset="1" stop-color="@FRAME_HIGHLIGHT@" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="720" height="40" fill="url(#title)"/>
+  <rect width="720" height="14" fill="url(#gloss)"/>
+  <path d="M0 1H720" stroke="@FRAME_HIGHLIGHT@" stroke-opacity=".72"/>
+  <path d="M0 39H720" stroke="@BORDER@" stroke-opacity=".8"/>
+  <path d="M0 4H250L190 25H0Z" fill="@FRAME_HIGHLIGHT@" opacity=".07"/>
+</svg>

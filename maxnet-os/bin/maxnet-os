@@ -368,12 +368,17 @@ apply_system_theme() {
     {
       printf 'gtk-theme=%s\n' "$(gsettings get org.cinnamon.desktop.interface gtk-theme)"
       printf 'cinnamon-theme=%s\n' "$(gsettings get org.cinnamon.theme name)"
+      printf 'window-theme=%s\n' "$(gsettings get org.cinnamon.desktop.wm.preferences theme)"
       printf 'wallpaper=%s\n' "$(gsettings get org.cinnamon.desktop.background picture-uri)"
     } > "$backup"
+    chmod 600 "$backup"
+  elif ! grep -q '^window-theme=' "$backup"; then
+    printf 'window-theme=%s\n' "$(gsettings get org.cinnamon.desktop.wm.preferences theme)" >> "$backup"
     chmod 600 "$backup"
   fi
   gsettings set org.cinnamon.desktop.interface gtk-theme "$theme_name"
   gsettings set org.cinnamon.theme name "$theme_name"
+  gsettings set org.cinnamon.desktop.wm.preferences theme "$theme_name"
   gsettings set org.cinnamon.desktop.background picture-uri \
     "file:///usr/share/backgrounds/maxnet-os-$THEME_ID.svg"
   apply_start_menu_icon
@@ -386,11 +391,12 @@ restore_system_theme() {
     printf '%s\n' "No saved Cinnamon theme settings were found." >&2
     exit 1
   }
-  local gtk_theme="" cinnamon_theme="" wallpaper=""
+  local gtk_theme="" cinnamon_theme="" window_theme="" wallpaper=""
   while IFS='=' read -r key value; do
     case "$key" in
       gtk-theme) gtk_theme="$value" ;;
       cinnamon-theme) cinnamon_theme="$value" ;;
+      window-theme) window_theme="$value" ;;
       wallpaper) wallpaper="$value" ;;
     esac
   done < "$backup"
@@ -400,6 +406,7 @@ restore_system_theme() {
   }
   gsettings set org.cinnamon.desktop.interface gtk-theme "$gtk_theme"
   gsettings set org.cinnamon.theme name "$cinnamon_theme"
+  [[ -z "$window_theme" ]] || gsettings set org.cinnamon.desktop.wm.preferences theme "$window_theme"
   gsettings set org.cinnamon.desktop.background picture-uri "$wallpaper"
   rm -f "$backup"
   rm -f "$theme_config"

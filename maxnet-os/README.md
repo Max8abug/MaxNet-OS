@@ -14,7 +14,7 @@ The OS theme chooser includes the same theme IDs as MaxNet:
 - Gold picture frame
 - Silver picture frame
 
-The theme IDs and names match MaxNet's `THEME_OPTIONS`; the OS package uses the MaxNet site CSS palettes and translates each theme's fonts, window borders, title bars, buttons, panel, and menus into Cinnamon and GTK 3/4. The site can render detailed web window effects more precisely than native Linux widgets, so this is a close desktop adaptation rather than a pixel-identical rendering of browser CSS. Choose **MaxNet OS Themes** from the application menu, or run `maxnet-os --choose-theme`. A first-login chooser appears until that local user picks a theme. The selected theme is passed to MaxNet when a launcher opens. If a signed-in user changes the theme in MaxNet, **Sync theme to Linux Mint** asks the OS to confirm applying it locally.
+The theme IDs and names match MaxNet's `THEME_OPTIONS`. Each desktop theme now includes native Cinnamon/Muffin window decorations, GTK 3/4 titlebars and controls, and opaque content surfaces, using the gradients, frame colors, and type styles from the matching MaxNet web theme. Native Linux cannot reproduce browser-only blur exactly, so Vista glass is rendered as an opaque, glossy frame instead of a see-through window. Choose **MaxNet OS Themes** from the application menu, or run `maxnet-os --choose-theme`. A first-login chooser appears until that local user picks a theme. The selected theme is passed to MaxNet when a launcher opens. If a signed-in user changes the theme in MaxNet, **Sync theme to MaxOS** asks the OS to confirm applying it locally.
 
 ## MaxNet applications in the Linux Mint menu
 
@@ -43,7 +43,9 @@ Chromium/Chrome/Brave opens MaxNet in a clean app window with a separate persist
 
 Open **MaxNet OS Update Manager** from the application menu or run `maxnet-os --updates`. The manager checks the latest stable GitHub release, downloads the matching architecture-specific `.deb`, verifies its SHA-256 sidecar and GitHub asset digest (when available), confirms the package name/version, and asks PolicyKit before installing through `apt`. It does not pull or execute repository source code.
 
-Releases are published from this repository by pushing a `v<VERSION>` tag that matches `maxnet-os/VERSION`. The GitHub Actions workflow builds the Debian package and publishes it with a checksum. The update manager will report that no release is available until the first tag has been published.
+When MaxNet OS files are pushed or merged to `main`, GitHub Actions automatically builds the Debian package, adds a SHA-256 checksum, and publishes a stable GitHub release. Automatic versions use `maxnet-os/VERSION` plus the workflow run number (for example, `0.4.2+build.17`), so each OS change can be offered as an update without manually editing the version for every sync. Feature branches do not publish updates until they reach `main`.
+
+For a deliberate versioned release, push a `v<VERSION>` tag that matches `maxnet-os/VERSION`; the same workflow publishes that exact version.
 
 Restore the previous Cinnamon theme and wallpaper with:
 

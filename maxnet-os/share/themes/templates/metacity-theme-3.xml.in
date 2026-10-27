@@ -1,0 +1,235 @@
+<?xml version="1.0"?>
+<metacity_theme>
+  <info>
+    <name>MaxNet desktop window theme</name>
+    <author>MaxNet OS project</author>
+    <description>Opaque native window decorations adapted from MaxNet display themes.</description>
+  </info>
+
+  <constant name="C_frame" value="@BORDER@"/>
+  <constant name="C_surface" value="@SURFACE@"/>
+  <constant name="C_title_active" value="@TITLE_TEXT@"/>
+  <constant name="C_title_inactive" value="@INACTIVE_TEXT@"/>
+  <constant name="C_button" value="@BUTTON_BG@"/>
+  <constant name="C_button_hover" value="@BUTTON_HOVER@"/>
+  <constant name="C_button_close" value="@CLOSE_BG@"/>
+  <constant name="C_button_icon" value="@TITLE_TEXT@"/>
+  <constant name="C_frame_highlight" value="@FRAME_HIGHLIGHT@"/>
+  <constant name="C_frame_shadow" value="@FRAME_SHADOW@"/>
+
+  <frame_geometry name="normal" title_scale="medium" rounded_top_left="1" rounded_top_right="1">
+    <distance name="left_width" value="@WM_EDGE@"/>
+    <distance name="right_width" value="@WM_EDGE@"/>
+    <distance name="bottom_height" value="@WM_EDGE@"/>
+    <distance name="left_titlebar_edge" value="4"/>
+    <distance name="right_titlebar_edge" value="4"/>
+    <distance name="title_vertical_pad" value="4"/>
+    <border name="title_border" left="10" right="100" top="3" bottom="3"/>
+    <border name="button_border" left="1" right="1" top="1" bottom="1"/>
+    <distance name="button_width" value="28"/>
+    <distance name="button_height" value="24"/>
+  </frame_geometry>
+
+  <frame_geometry name="max" title_scale="medium" parent="normal" rounded_top_left="false" rounded_top_right="false">
+    <distance name="left_width" value="0"/>
+    <distance name="right_width" value="0"/>
+    <distance name="bottom_height" value="1"/>
+    <distance name="left_titlebar_edge" value="0"/>
+    <distance name="right_titlebar_edge" value="0"/>
+    <distance name="title_vertical_pad" value="3"/>
+  </frame_geometry>
+
+  <draw_ops name="title_active">
+    <title version="&gt;= 3.1"
+           x="(0 `max` ((frame_x_center - title_width / 2) `min` (width - title_width)))"
+           y="(0 `max` ((height - title_height) / 2))"
+           ellipsize_width="width"
+           color="C_title_active"/>
+  </draw_ops>
+  <draw_ops name="title_inactive">
+    <title version="&gt;= 3.1"
+           x="(0 `max` ((frame_x_center - title_width / 2) `min` (width - title_width)))"
+           y="(0 `max` ((height - title_height) / 2))"
+           ellipsize_width="width"
+           color="C_title_inactive"/>
+  </draw_ops>
+
+  <draw_ops name="background">
+    <rectangle color="C_surface" x="0" y="0" width="width" height="height" filled="true"/>
+  </draw_ops>
+  <draw_ops name="titlebar_active">
+    <image filename="titlebar-active.svg" x="0" y="0" width="width" height="height"/>
+  </draw_ops>
+  <draw_ops name="titlebar_inactive">
+    <image filename="titlebar-inactive.svg" x="0" y="0" width="width" height="height"/>
+  </draw_ops>
+  <draw_ops name="edge_active">
+    <rectangle color="C_frame" x="0" y="0" width="width" height="height" filled="true"/>
+    <line x1="0" y1="0" x2="width" y2="0" color="C_frame_highlight"/>
+    <line x1="1" y1="1" x2="1" y2="height" color="C_frame_highlight"/>
+    <line x1="2" y1="0" x2="2" y2="height" color="C_surface"/>
+    <line x1="width-1" y1="0" x2="width-1" y2="height" color="C_frame_shadow"/>
+  </draw_ops>
+  <draw_ops name="edge_inactive">
+    <rectangle color="C_frame" x="0" y="0" width="width" height="height" filled="true"/>
+    <line x1="0" y1="0" x2="width" y2="0" color="C_frame_highlight"/>
+    <line x1="width-1" y1="0" x2="width-1" y2="height" color="C_frame_shadow"/>
+  </draw_ops>
+
+  <draw_ops name="button_base">
+    <rectangle color="C_button" x="(width-object_width)/2" y="(height-object_height)/2"
+               width="object_width" height="object_height" filled="true"/>
+    <rectangle color="C_frame" x="(width-object_width)/2" y="(height-object_height)/2"
+               width="object_width" height="object_height" filled="false"/>
+    <line x1="(width-object_width)/2+1" y1="(height-object_height)/2+1"
+          x2="(width+object_width)/2-1" y2="(height-object_height)/2+1"
+          color="C_frame_highlight"/>
+  </draw_ops>
+  <draw_ops name="button_hover">
+    <rectangle color="C_button_hover" x="(width-object_width)/2" y="(height-object_height)/2"
+               width="object_width" height="object_height" filled="true"/>
+    <rectangle color="C_frame_highlight" x="(width-object_width)/2" y="(height-object_height)/2"
+               width="object_width" height="object_height" filled="false"/>
+  </draw_ops>
+  <draw_ops name="button_minimize_hover">
+    <include name="button_hover"/>
+    <line x1="(width-object_width)/2+7" y1="(height-object_height)/2+15"
+          x2="(width-object_width)/2+21" y2="(height-object_height)/2+15"
+          color="C_button_icon"/>
+  </draw_ops>
+  <draw_ops name="button_maximize_hover">
+    <include name="button_hover"/>
+    <rectangle color="C_button_icon" x="(width-object_width)/2+7" y="(height-object_height)/2+6"
+               width="14" height="12" filled="false"/>
+  </draw_ops>
+  <draw_ops name="button_close">
+    <rectangle color="C_button_close" x="(width-object_width)/2" y="(height-object_height)/2"
+               width="object_width" height="object_height" filled="true"/>
+    <rectangle color="C_frame" x="(width-object_width)/2" y="(height-object_height)/2"
+               width="object_width" height="object_height" filled="false"/>
+    <line x1="(width-object_width)/2+9" y1="(height-object_height)/2+7"
+          x2="(width-object_width)/2+15" y2="(height-object_height)/2+17"
+          color="C_button_icon"/>
+    <line x1="(width-object_width)/2+15" y1="(height-object_height)/2+7"
+          x2="(width-object_width)/2+9" y2="(height-object_height)/2+17"
+          color="C_button_icon"/>
+  </draw_ops>
+  <draw_ops name="button_close_hover">
+    <rectangle color="C_button_hover" x="(width-object_width)/2" y="(height-object-height)/2"
+               width="object_width" height="object_height" filled="true"/>
+    <rectangle color="C_frame_highlight" x="(width-object_width)/2" y="(height-object_height)/2"
+               width="object_width" height="object_height" filled="false"/>
+    <line x1="(width-object_width)/2+9" y1="(height-object_height)/2+7"
+          x2="(width-object_width)/2+15" y2="(height-object_height)/2+17"
+          color="C_button_icon"/>
+    <line x1="(width-object_width)/2+15" y1="(height-object_height)/2+7"
+          x2="(width-object_width)/2+9" y2="(height-object_height)/2+17"
+          color="C_button_icon"/>
+  </draw_ops>
+  <draw_ops name="button_minimize">
+    <rectangle color="C_button" x="(width-object_width)/2" y="(height-object-height)/2"
+               width="object_width" height="object_height" filled="true"/>
+    <rectangle color="C_frame" x="(width-object_width)/2" y="(height-object-height)/2"
+               width="object_width" height="object_height" filled="false"/>
+    <line x1="(width-object_width)/2+7" y1="(height-object_height)/2+15"
+          x2="(width-object_width)/2+21" y2="(height-object_height)/2+15"
+          color="C_button_icon"/>
+  </draw_ops>
+  <draw_ops name="button_maximize">
+    <rectangle color="C_button" x="(width-object_width)/2" y="(height-object-height)/2"
+               width="object_width" height="object_height" filled="true"/>
+    <rectangle color="C_frame" x="(width-object_width)/2" y="(height-object-height)/2"
+               width="object_width" height="object_height" filled="false"/>
+    <rectangle color="C_button_icon" x="(width-object_width)/2+7" y="(height-object-height)/2+6"
+               width="14" height="12" filled="false"/>
+  </draw_ops>
+
+  <frame_style name="normal_focused" geometry="normal">
+    <piece position="entire_background" draw_ops="background"/>
+    <piece position="titlebar" draw_ops="titlebar_active"/>
+    <piece position="title" draw_ops="title_active"/>
+    <piece position="left_edge" draw_ops="edge_active"/>
+    <piece position="right_edge" draw_ops="edge_active"/>
+    <piece position="bottom_edge" draw_ops="edge_active"/>
+    <button function="close" state="normal" draw_ops="button_close"/>
+    <button function="close" state="prelight" draw_ops="button_close_hover"/>
+    <button function="close" state="pressed" draw_ops="button_close_hover"/>
+    <button function="minimize" state="normal" draw_ops="button_minimize"/>
+    <button function="minimize" state="prelight" draw_ops="button_minimize_hover"/>
+    <button function="minimize" state="pressed" draw_ops="button_minimize_hover"/>
+    <button function="maximize" state="normal" draw_ops="button_maximize"/>
+    <button function="maximize" state="prelight" draw_ops="button_maximize_hover"/>
+    <button function="maximize" state="pressed" draw_ops="button_maximize_hover"/>
+  </frame_style>
+  <frame_style name="normal_unfocused" geometry="normal">
+    <piece position="entire_background" draw_ops="background"/>
+    <piece position="titlebar" draw_ops="titlebar_inactive"/>
+    <piece position="title" draw_ops="title_inactive"/>
+    <piece position="left_edge" draw_ops="edge_inactive"/>
+    <piece position="right_edge" draw_ops="edge_inactive"/>
+    <piece position="bottom_edge" draw_ops="edge_inactive"/>
+    <button function="close" state="normal" draw_ops="button_close"/>
+    <button function="close" state="prelight" draw_ops="button_close_hover"/>
+    <button function="close" state="pressed" draw_ops="button_close_hover"/>
+    <button function="minimize" state="normal" draw_ops="button_minimize"/>
+    <button function="minimize" state="prelight" draw_ops="button_minimize_hover"/>
+    <button function="minimize" state="pressed" draw_ops="button_minimize_hover"/>
+    <button function="maximize" state="normal" draw_ops="button_maximize"/>
+    <button function="maximize" state="prelight" draw_ops="button_maximize_hover"/>
+    <button function="maximize" state="pressed" draw_ops="button_maximize_hover"/>
+  </frame_style>
+  <frame_style name="max_focused" geometry="max">
+    <piece position="entire_background" draw_ops="background"/>
+    <piece position="titlebar" draw_ops="titlebar_active"/>
+    <piece position="title" draw_ops="title_active"/>
+    <button function="close" state="normal" draw_ops="button_close"/>
+    <button function="close" state="prelight" draw_ops="button_close_hover"/>
+    <button function="close" state="pressed" draw_ops="button_close_hover"/>
+    <button function="minimize" state="normal" draw_ops="button_minimize"/>
+    <button function="minimize" state="prelight" draw_ops="button_minimize_hover"/>
+    <button function="minimize" state="pressed" draw_ops="button_minimize_hover"/>
+    <button function="maximize" state="normal" draw_ops="button_maximize"/>
+    <button function="maximize" state="prelight" draw_ops="button_maximize_hover"/>
+    <button function="maximize" state="pressed" draw_ops="button_maximize_hover"/>
+  </frame_style>
+  <frame_style name="max_unfocused" geometry="max">
+    <piece position="entire_background" draw_ops="background"/>
+    <piece position="titlebar" draw_ops="titlebar_inactive"/>
+    <piece position="title" draw_ops="title_inactive"/>
+    <button function="close" state="normal" draw_ops="button_close"/>
+    <button function="close" state="prelight" draw_ops="button_close_hover"/>
+    <button function="close" state="pressed" draw_ops="button_close_hover"/>
+    <button function="minimize" state="normal" draw_ops="button_minimize"/>
+    <button function="minimize" state="prelight" draw_ops="button_minimize_hover"/>
+    <button function="minimize" state="pressed" draw_ops="button_minimize_hover"/>
+    <button function="maximize" state="normal" draw_ops="button_maximize"/>
+    <button function="maximize" state="prelight" draw_ops="button_maximize_hover"/>
+    <button function="maximize" state="pressed" draw_ops="button_maximize_hover"/>
+  </frame_style>
+
+  <frame_style_set name="normal_style_set">
+    <frame focus="yes" state="normal" resize="both" style="normal_focused"/>
+    <frame focus="yes" state="normal" resize="vertical" style="normal_focused"/>
+    <frame focus="yes" state="normal" resize="horizontal" style="normal_focused"/>
+    <frame focus="yes" state="normal" resize="none" style="normal_focused"/>
+    <frame focus="no" state="normal" resize="both" style="normal_unfocused"/>
+    <frame focus="no" state="normal" resize="vertical" style="normal_unfocused"/>
+    <frame focus="no" state="normal" resize="horizontal" style="normal_unfocused"/>
+    <frame focus="no" state="normal" resize="none" style="normal_unfocused"/>
+    <frame focus="yes" state="maximized" style="max_focused"/>
+    <frame focus="no" state="maximized" style="max_unfocused"/>
+    <frame focus="yes" state="shaded" style="normal_focused"/>
+    <frame focus="no" state="shaded" style="normal_unfocused"/>
+    <frame focus="yes" state="maximized_and_shaded" style="max_focused"/>
+    <frame focus="no" state="maximized_and_shaded" style="max_unfocused"/>
+    <frame version="&gt;= 3.3" focus="yes" state="tiled_left" style="max_focused"/>
+    <frame version="&gt;= 3.3" focus="no" state="tiled_left" style="max_unfocused"/>
+    <frame version="&gt;= 3.3" focus="yes" state="tiled_right" style="max_focused"/>
+    <frame version="&gt;= 3.3" focus="no" state="tiled_right" style="max_unfocused"/>
+  </frame_style_set>
+  <window type="normal" style_set="normal_style_set"/>
+  <window type="dialog" style_set="normal_style_set"/>
+  <window type="modal_dialog" style_set="normal_style_set"/>
+  <window type="utility" style_set="normal_style_set"/>
+  <window type="menu" style_set="normal_style_set"/>
+</metacity_theme>
