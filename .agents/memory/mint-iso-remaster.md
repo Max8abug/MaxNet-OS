@@ -35,4 +35,4 @@ Large ISO download links on the Replit development domain are not reliably publi
 
 **Why:** In October 2026, the development URL was not a reliable public source for external CI, and the connector could not upload release assets.
 
-**How to apply:** Test download links from an unauthenticated external client, not only from inside Replit. Do not promise a Replit development URL as a public download. When paid storage is not approved, use a no-cost public host and include a reassembly/checksum path for split ISOs.
+**How to apply:** Replit development URLs are private by default. To use one as a public download, the owner must turn off **Private preview** under **Tools & files → Networking**, which makes the whole running app reachable to anyone with the URL. Check its routes for private data, then verify from an unauthenticated external client before sharing. When paid storage is not approved, use a no-cost public host and include a reassembly/checksum path only if the user accepts split files.
