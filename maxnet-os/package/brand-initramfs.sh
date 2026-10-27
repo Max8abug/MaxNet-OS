@@ -89,6 +89,11 @@ for frame in range(1, 37):
     replacements[f"usr/share/plymouth/themes/mint-logo/{filename}"] = (
         theme / filename
     ).read_bytes()
+for frame in range(1, 31):
+    filename = f"throbber-{frame:04}.png"
+    replacements[f"usr/share/plymouth/themes/mint-logo/{filename}"] = (
+        theme / filename
+    ).read_bytes()
 
 align = lambda value: (value + 3) & ~3
 output = bytearray()

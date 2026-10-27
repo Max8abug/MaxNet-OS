@@ -23,6 +23,8 @@ magick -background none -density 144 "$BRANDING_DIR/maxos-boot.svg" \
   -resize 560x192 "$WORK/maxos-boot-base.png"
 magick "$BRANDING_DIR/boot-icon.png" -trim +repage -resize 50x50 \
   -background none -gravity center -extent 50x50 "$WORK/boot-icon.png"
+magick "$BRANDING_DIR/boot-icon.png" -trim +repage -resize 88x88 \
+  -background none -gravity center -extent 100x100 "$WORK/maxos-throbber.png"
 magick "$WORK/maxos-boot-base.png" "$WORK/boot-icon.png" \
   -gravity northwest -geometry +26+54 -compose over -composite \
   "$WORK/maxos-boot.png"
@@ -32,6 +34,9 @@ magick "$PACKAGE_ROOT/share/backgrounds/maxnet-os.svg" \
 install -Dm644 "$WORK/maxos-boot.png" "$PLYMOUTH_DIR/animation-0001.png"
 for frame in $(seq -w 2 36); do
   install -m644 "$WORK/maxos-boot.png" "$PLYMOUTH_DIR/animation-00${frame}.png"
+done
+for frame in $(seq -w 1 30); do
+  install -m644 "$WORK/maxos-throbber.png" "$PLYMOUTH_DIR/throbber-00${frame}.png"
 done
 install -m644 "$WORK/maxos-boot.png" "$PLYMOUTH_DIR/bgrt-fallback.png"
 install -Dm644 "$WORK/maxos-login.jpg" \
