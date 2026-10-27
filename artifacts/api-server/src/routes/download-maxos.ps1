@@ -37,16 +37,32 @@ try {
 
         Write-Host "Downloading chunk $part of $ChunkCount..."
         try {
-            & curl.exe --fail --silent --show-error --location `
-                --retry 5 --retry-delay 2 --retry-all-errors `
-                --output $partPath $partUrl
-            if ($LASTEXITCODE -ne 0) {
-                throw "curl.exe failed for chunk $part with exit code $LASTEXITCODE."
+            $downloaded = $false
+            for ($attempt = 1; $attempt -le 6; $attempt++) {
+                if (Test-Path -LiteralPath $partPath) {
+                    Remove-Item -LiteralPath $partPath -Force
+                }
+
+                & curl.exe --fail --silent --show-error --location `
+                    --output $partPath $partUrl
+                $curlExitCode = $LASTEXITCODE
+
+                if ($curlExitCode -eq 0 -and (Test-Path -LiteralPath $partPath)) {
+                    $actualPartSize = (Get-Item -LiteralPath $partPath).Length
+                    if ($actualPartSize -eq $expectedPartSize) {
+                        $downloaded = $true
+                        break
+                    }
+                }
+
+                if ($attempt -lt 6) {
+                    Write-Warning "Chunk $part failed on attempt $attempt; retrying."
+                    Start-Sleep -Seconds 2
+                }
             }
 
-            $actualPartSize = (Get-Item -LiteralPath $partPath).Length
-            if ($actualPartSize -ne $expectedPartSize) {
-                throw "Chunk $part has $actualPartSize bytes; expected $expectedPartSize."
+            if (-not $downloaded) {
+                throw "Could not download chunk $part after 6 attempts."
             }
 
             $PartStream = [System.IO.File]::OpenRead($partPath)

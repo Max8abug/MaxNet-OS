@@ -30,6 +30,14 @@ const downloaderScriptPath = resolve(
   "routes",
   "download-maxos.ps1",
 );
+const shellDownloaderScriptPath = resolve(
+  workspaceRoot,
+  "artifacts",
+  "api-server",
+  "src",
+  "routes",
+  "download-maxos.sh",
+);
 const chunkSize = 256 * 1024 * 1024;
 const minimumIsoSize = 2_500_000_000;
 
@@ -145,10 +153,12 @@ const downloadIsoChunk = async (
   }
 };
 
-const downloadPowerShellHelper = async (
+const downloadHelperScript = async (
   req: Request,
   res: Response,
   next: NextFunction,
+  scriptPath: string,
+  filename: string,
 ) => {
   if (!ensureDevelopmentDownload(res)) {
     return;
@@ -157,20 +167,27 @@ const downloadPowerShellHelper = async (
   try {
     const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0]?.trim();
     const origin = `${forwardedProto || req.protocol}://${req.get("host")}`;
-    const template = await readFile(downloaderScriptPath, "utf8");
+    const template = await readFile(scriptPath, "utf8");
     const script = template.replaceAll("__MAXOS_DOWNLOAD_ORIGIN__", origin);
 
     res.type("text/plain");
-    res.attachment("download-maxos.ps1");
+    res.attachment(filename);
     res.send(script);
   } catch (error) {
     next(error);
   }
 };
 
+const downloadPowerShellHelper = (req: Request, res: Response, next: NextFunction) =>
+  downloadHelperScript(req, res, next, downloaderScriptPath, "download-maxos.ps1");
+
+const downloadShellHelper = (req: Request, res: Response, next: NextFunction) =>
+  downloadHelperScript(req, res, next, shellDownloaderScriptPath, "download-maxos.sh");
+
 router.get("/download/maxnet-os.iso", downloadIso);
 router.get(`/download/${isoDownloadName}`, downloadIso);
 router.get("/download/maxnet-os.part/:part", downloadIsoChunk);
 router.get("/download/download-maxos.ps1", downloadPowerShellHelper);
+router.get("/download/download-maxos.sh", downloadShellHelper);
 
 export default router;
