@@ -16,28 +16,28 @@ The OS theme chooser includes the same theme IDs as MaxNet:
 
 The theme IDs and names match MaxNet's `THEME_OPTIONS`. Each desktop theme now includes native Cinnamon/Muffin window decorations, GTK 3/4 titlebars and controls, and opaque content surfaces, using the gradients, frame colors, and type styles from the matching MaxNet web theme. Native Linux cannot reproduce browser-only blur exactly, so Vista glass is rendered as an opaque, glossy frame instead of a see-through window. Choose **MaxNet OS Themes** from the application menu, or run `maxnet-os --choose-theme`. A first-login chooser appears until that local user picks a theme. The selected theme is passed to MaxNet when a launcher opens. If a signed-in user changes the theme in MaxNet, **Sync theme to MaxOS** asks the OS to confirm applying it locally.
 
-## MaxNet applications in the Linux Mint menu
+## MaxNet applications in the MaxOS Start menu
 
-The menu includes sign-in, Chatroom, Forums, Direct Messages, Network Feed/People/Wiki, Photo Gallery, Users, Guestbook, Visitor Counter, Planner, Site News, Games, Eaglercraft, My Page Editor, Synced YouTube, Polls, Music Player, Playlists, Drawing Pad, and MaxNet Display Settings.
+All MaxNet website launchers appear together in a **MaxNet** category in the Cinnamon application menu: sign-in, Chatroom, Forums, Direct Messages, Network Feed/People/Wiki, Photo Gallery, Users, Guestbook, Visitor Counter, Planner, Site News, Games, Eaglercraft, My Page Editor, Synced YouTube, Polls, Music Player, Playlists, Drawing Pad, and MaxNet Display Settings. The panel menu button is branded **Start** with the MaxNet logo; when the server is reachable, MaxOS uses the same logo configured on the website and caches it for offline use.
 
 The **Sign in to MaxNet** launcher uses the normal MaxNet account dialog and keeps its session in a separate persistent browser profile. Linux Mint's own login remains local, so it works even when MaxNet is offline. Signed-in users can sync their MaxNet display theme to the local Cinnamon theme and wallpaper after confirming the change. The local OS login PIN/password is never sent to MaxNet or synced; it is managed by Linux Mint, and the same local credential is also used for `sudo`.
 
-App launch supports sign-in, Chatroom, Forums, Direct Messages, Network, Eaglercraft, and the other MaxNet apps listed in the menu.
+App launch supports sign-in, Chatroom, Forums, Direct Messages, Network, Eaglercraft, and the other MaxNet apps listed in the menu. Each feature launcher opens the matching MaxNet component without the website's desktop, taskbar, or navigation shell. Chromium/Chrome/Brave uses a native app window without browser controls; Firefox shows the same app-only page with its browser controls.
 
-## Build the Linux Mint integration package
+## Build the MaxOS integration package
 
 On Linux Mint or Debian with `dpkg-deb` installed:
 
 ```bash
 ./maxnet-os/package/build-deb.sh
-sudo apt install ./maxnet-os/dist/maxnet-os_0.4.0_$(dpkg --print-architecture).deb
+sudo apt install ./maxnet-os/dist/maxnet-os_0.4.4_$(dpkg --print-architecture).deb
 ```
 
 The launcher defaults to the confirmed MaxNet host. Use **MaxNet OS → Configure** (or run `maxnet-os configure`) to change it. A per-user override is stored under `~/.config/maxnet-os/settings.conf`; the chosen theme is stored separately in `~/.config/maxnet-os/theme`. This package never stores a MaxNet password or session token.
 
 Use **Set Local OS PIN** from the application menu to run Mint's standard `passwd` tool. This changes the local account password used at restart and lock screen; Mint also uses it for `sudo`. It is not a separate short PIN credential and it is never checked by MaxNet. Keep at least one administrator account with a strong recovery password.
 
-Chromium/Chrome/Brave opens MaxNet in a clean app window with a separate persistent profile. Firefox and the system browser are supported as fallbacks; those may show normal browser controls. Install Chromium for the closest standalone-app experience.
+Chromium/Chrome/Brave opens MaxNet in a clean app window with a separate persistent profile. Firefox and the system browser are supported as fallbacks; those may show normal browser controls, but the MaxNet page still presents only the selected app.
 
 ## MaxNet OS updates
 

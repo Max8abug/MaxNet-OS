@@ -1,11 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <defs>
-    <linearGradient id="maxnet-start-gradient" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#2563eb"/>
-      <stop offset="1" stop-color="#22c55e"/>
-    </linearGradient>
-  </defs>
-  <rect width="64" height="64" fill="url(#maxnet-start-gradient)"/>
-  <path d="M2 2h60v60" fill="none" stroke="#fff" stroke-opacity=".38" stroke-width="2"/>
-  <path d="M2 62h60V2" fill="none" stroke="#000" stroke-opacity=".22" stroke-width="2"/>
+  <rect x="3" y="3" width="58" height="58" rx="12" fill="#10262b"/>
+  <path d="M12 44V20h7l13 14 13-14h7v24h-8V31L32 43 20 31v13z" fill="#36d6c0"/>
+  <circle cx="51" cy="13" r="4" fill="#f4bd59"/>
 </svg>

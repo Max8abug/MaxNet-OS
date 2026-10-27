@@ -47,6 +47,17 @@
   box-shadow: inset 1px 1px @BORDER@, inset -1px -1px @SURFACE@;
 }
 
+#panel .panel-left > .applet-box:first-child.panel-button,
+#panel .panel-left > .applet-box:first-child .panel-button {
+  min-width: 76px;
+  padding: 3px 10px;
+  border-radius: 2px;
+}
+
+#panel .panel-left > .applet-box:first-child .applet-label {
+  font-weight: 700;
+}
+
 .window-list-item-box {
   color: @FG@;
   background-color: @BG@;
