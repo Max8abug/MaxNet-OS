@@ -17,6 +17,8 @@ install -Dm644 "$ROOT/share/applications/features.tsv" \
   "$STAGE/usr/share/maxnet-os/features.tsv"
 install -Dm644 "$ROOT/share/backgrounds/maxnet-os.svg" \
   "$STAGE/usr/share/backgrounds/maxnet-os.svg"
+install -Dm644 "$ROOT/share/videos/maxos-intro.mp4" \
+  "$STAGE/usr/share/maxnet-os/maxos-intro.mp4"
 
 while IFS='|' read -r theme_id label bg fg accent surface border accent_fg font_family frame radius panel_bg button_bg title_top title_mid title_bottom title_text inactive_top inactive_bottom inactive_text close_bg frame_highlight frame_shadow wm_edge control_radius title_radius; do
   [[ -n "$theme_id" && "$theme_id" != \#* ]] || continue
