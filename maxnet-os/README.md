@@ -20,6 +20,10 @@ The theme IDs and names match MaxNet's `THEME_OPTIONS`. Each desktop theme inclu
 
 All 22 MaxNet feature launchers appear together in the **MaxNet** section in Start: sign-in, Chatroom, Forums, Direct Messages, Network Feed/People/Wiki, Photo Gallery, Users, Guestbook, Visitor Counter, Planner, Site News, Games, Eaglercraft, My Page Editor, Synced YouTube, Polls, Music Player, Playlists, Drawing Pad, and MaxNet Display Settings. Account sync and the MaxOS desktop launcher are grouped there too. **System** separately contains Files, System Settings, local theme controls, updates, and device configuration.
 
+## First-run welcome intro
+
+On the first Cinnamon login after installation, MaxOS plays the bundled MaxNet intro video full-screen before showing the sign-in and theme setup prompts. The video is stored locally, so it also plays when the MaxNet server is offline. Press **Q** or **Esc** to skip; completing or skipping the video continues normal setup. It does not replay after the first-run setup marker is created.
+
 ## MaxNet account settings during setup
 
 On first desktop startup, MaxOS offers to sign in to MaxNet and sync the signed-in account's display theme, profile background, timezone, rank, MaxNet permissions, and currently available MaxNet apps. The website uses its normal login dialog. The MaxOS sync helper receives only an expiring, one-time authorization code and settings snapshot; it never handles the MaxNet password or browser session. The browser stores sign-in locally so MaxNet apps can stay signed in. Review and confirm the settings on the computer before applying them. MaxOS does not change the Linux system timezone; MaxNet continues to use the account's timezone preference inside its apps. Use **Sync MaxNet Account** in the Start menu or run `maxnet-os --sync-account` to refresh the snapshot later.
@@ -36,7 +40,7 @@ On Linux Mint or Debian with `dpkg-deb` installed:
 
 ```bash
 ./maxnet-os/package/build-deb.sh
-sudo apt install ./maxnet-os/dist/maxnet-os_0.4.8_$(dpkg --print-architecture).deb
+sudo apt install ./maxnet-os/dist/maxnet-os_0.4.9_$(dpkg --print-architecture).deb
 ```
 
 The launcher defaults to the confirmed MaxNet host. Use **MaxNet OS → Configure** (or run `maxnet-os configure`) to change it. A per-user override is stored under `~/.config/maxnet-os/settings.conf`; the chosen theme is stored separately in `~/.config/maxnet-os/theme`. This package never stores a MaxNet password or session token.
