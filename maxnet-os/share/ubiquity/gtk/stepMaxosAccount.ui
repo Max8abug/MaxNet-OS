@@ -17,7 +17,7 @@
         <child>
           <object class="GtkImage" id="maxos_installer_logo">
             <property name="pixel-size">64</property>
-            <property name="icon-name">maxos</property>
+            <property name="icon-name">maxnet</property>
             <property name="visible">True</property>
           </object>
         </child>

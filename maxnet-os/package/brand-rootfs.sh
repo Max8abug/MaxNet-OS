@@ -152,7 +152,7 @@ for relative in (
     replace_in(relative, {"Linux Mint Update Manager": "MaxOS Update Manager"})
 
 replace_in("usr/share/applications/ubiquity.desktop", {
-    "Icon=mintubiquity": "Icon=maxos",
+    "Icon=mintubiquity": "Icon=maxnet",
     "Comment[bg]=Инсталиране Linux Mint трайно на твърдия диск": (
         "Comment[bg]=Инсталиране MaxOS трайно на твърдия диск"
     ),

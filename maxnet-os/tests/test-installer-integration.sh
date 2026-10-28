@@ -41,6 +41,8 @@ object_ids = {
 for required in ("stepMaxosAccount", "maxnet_sign_in_button", "maxnet_account_offline_note"):
     if required not in object_ids:
         raise SystemExit(f"Ubiquity installer page is missing widget {required}")
+if "maxnet</property>" not in ui_path.read_text(encoding="utf-8"):
+    raise SystemExit("The MaxOS account page is missing the MaxNet logo")
 
 preview = (root / "maxnet-os/bin/maxos-installer-preview").read_text(encoding="utf-8")
 if "is_local_admin" not in preview or "sudo" not in preview or "wheel" not in preview:
@@ -49,6 +51,9 @@ if "Simulation only" not in preview or "No changes will be made" not in preview:
     raise SystemExit("The installer preview does not clearly identify its non-destructive mode")
 if "maxos-intro.mp4" not in preview or "maxnet-feature" not in preview:
     raise SystemExit("The installer preview is missing its video or account test action")
+launcher = (root / "maxnet-os/share/applications/maxnet-os-installer-preview.desktop").read_text()
+if "Categories=X-MaxOS-System;" not in launcher or "Exec=maxos-installer-preview" not in launcher:
+    raise SystemExit("The preview launcher is not available in the MaxOS System menu")
 print("PASS: Ubiquity plugin, final-step UI, admin preview, account action, and video test are present.")
 PY
 
@@ -102,24 +107,23 @@ PATH="$tmp_dir/mock-bin:$PATH" \
 
 python3 - "$fixture" <<'PY'
 from pathlib import Path
-import re
 import sys
 
 root = Path(sys.argv[1])
 grub = (root / "boot/grub/grub.cfg").read_text()
-grub_install = re.search(r'menuentry "Install MaxOS[^"]*"[^\\n]*\\{(.*?)\\n\\}', grub, re.S)
-grub_compat = re.search(r'menuentry "Try MaxOS desktop[^"]*"[^\\n]*\\{(.*?)\\n\\}', grub, re.S)
-if not grub_install or "only-ubiquity" not in grub_install.group(1):
+grub_install = grub.split('menuentry "Install MaxOS', 1)[1].split("\n}", 1)[0]
+grub_compat = grub.split('menuentry "Try MaxOS desktop', 1)[1].split("\n}", 1)[0]
+if "only-ubiquity" not in grub_install:
     raise SystemExit("GRUB default does not boot directly into the installer")
-if not grub_compat or "only-ubiquity" in grub_compat.group(1):
+if "only-ubiquity" in grub_compat:
     raise SystemExit("GRUB compatibility entry no longer provides a live desktop")
 
 syslinux = (root / "isolinux/live.cfg").read_text()
-live_block = re.search(r"(?ms)^label live\\n(.*?)(?=^label |\\Z)", syslinux)
-compat_block = re.search(r"(?ms)^label compat\\n(.*?)(?=^label |\\Z)", syslinux)
-if not live_block or "only-ubiquity" not in live_block.group(1):
+live_block = syslinux.split("label live", 1)[1].split("\nlabel ", 1)[0]
+compat_block = syslinux.split("label compat", 1)[1]
+if "only-ubiquity" not in live_block:
     raise SystemExit("Syslinux default does not boot directly into the installer")
-if not compat_block or "only-ubiquity" in compat_block.group(1):
+if "only-ubiquity" in compat_block:
     raise SystemExit("Syslinux compatibility entry no longer provides a live desktop")
 print("PASS: GRUB and Syslinux boot to the installer by default and preserve a live desktop fallback.")
 PY
