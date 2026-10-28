@@ -14,11 +14,15 @@ The OS theme chooser includes the same theme IDs as MaxNet:
 - Gold picture frame
 - Silver picture frame
 
-The theme IDs and names match MaxNet's `THEME_OPTIONS`. Each desktop theme includes coordinated Cinnamon taskbar/menu styling, native Muffin window decorations, GTK 3/4 titlebars and controls, and opaque content surfaces. The panel Start button uses the website logo when it can sync it, then keeps the cached icon for offline use. Vista glass is rendered as an opaque, glossy frame instead of a see-through window. Choose **MaxOS Themes** from Start → System, or run `maxnet-os --choose-theme`. If account sync is skipped, a first-login chooser offers a local theme. The selected theme is passed to MaxNet when a launcher opens.
+The theme IDs and names match MaxNet's `THEME_OPTIONS`. Each desktop theme includes coordinated Cinnamon taskbar/menu styling, native Muffin window decorations, GTK 3/4 titlebars and controls, and opaque content surfaces. The panel Start button uses the logo configured in MaxNet site settings when available and keeps a cached copy for offline use. If the logo changes, MaxOS refreshes the panel branding without requiring a full logout. Vista glass is rendered as an opaque, glossy frame instead of a see-through window. Choose **MaxOS Themes** from Start → System, or run `maxnet-os --choose-theme`. If account sync is skipped, a first-login chooser offers a local theme. The selected theme is passed to MaxNet when a launcher opens.
 
 ## MaxNet applications in the MaxOS Start menu
 
 All 22 MaxNet feature launchers appear together in the **MaxNet** section in Start: sign-in, Chatroom, Forums, Direct Messages, Network Feed/People/Wiki, Photo Gallery, Users, Guestbook, Visitor Counter, Planner, Site News, Games, Eaglercraft, My Page Editor, Synced YouTube, Polls, Music Player, Playlists, Drawing Pad, and MaxNet Display Settings. Account sync and the MaxOS desktop launcher are grouped there too. **System** separately contains Files, System Settings, local theme controls, updates, and device configuration.
+
+## First-run welcome intro
+
+On the first Cinnamon login after installation, MaxOS plays the bundled MaxNet intro video full-screen before showing the sign-in and theme setup prompts. The video is stored locally, so it also plays when the MaxNet server is offline. Press **Q** or **Esc** to skip; completing or skipping the video continues normal setup. It does not replay after the first-run setup marker is created.
 
 ## MaxNet account settings during setup
 
@@ -28,7 +32,7 @@ Synced app availability controls MaxOS's launcher visibility, not site authoriza
 
 The **Sign in to MaxNet** launcher uses the normal MaxNet account dialog and keeps its session in a separate persistent browser profile. The local OS login PIN/password is never sent to MaxNet or synced; it is managed by Linux Mint, and the same local credential is also used for `sudo`.
 
-App launch supports sign-in, Chatroom, Forums, Direct Messages, Network, Eaglercraft, and the other MaxNet apps listed in the menu. Each feature launcher opens the matching MaxNet component without the website's desktop, taskbar, or navigation shell. Chromium/Chrome/Brave uses a native app window without browser controls; Firefox shows the same app-only page with its browser controls.
+App launch supports sign-in, Chatroom, Forums, Direct Messages, Network, Eaglercraft, and the other MaxNet apps listed in the menu. Each feature launcher opens the matching MaxNet component without the website's desktop, taskbar, or navigation shell. Chromium/Chrome/Brave uses a native app window without browser controls; Firefox uses kiosk mode to hide tabs and the address bar. Firefox kiosk windows are full-screen.
 
 ## Build the MaxOS integration package
 
@@ -36,14 +40,14 @@ On Linux Mint or Debian with `dpkg-deb` installed:
 
 ```bash
 ./maxnet-os/package/build-deb.sh
-sudo apt install ./maxnet-os/dist/maxnet-os_0.4.6_$(dpkg --print-architecture).deb
+sudo apt install ./maxnet-os/dist/maxnet-os_0.4.9_$(dpkg --print-architecture).deb
 ```
 
 The launcher defaults to the confirmed MaxNet host. Use **MaxNet OS → Configure** (or run `maxnet-os configure`) to change it. A per-user override is stored under `~/.config/maxnet-os/settings.conf`; the chosen theme is stored separately in `~/.config/maxnet-os/theme`. This package never stores a MaxNet password or session token.
 
 Use **Set Local OS PIN** from Start → System to run the standard `passwd` tool. This changes the local account password used at restart and lock screen; the system also uses it for `sudo`. It is not a separate short PIN credential and it is never checked by MaxNet. Keep at least one administrator account with a strong recovery password.
 
-Chromium/Chrome/Brave opens MaxNet in a clean app window with a separate persistent profile. Firefox and the system browser are supported as fallbacks; those may show normal browser controls, but the MaxNet page still presents only the selected app.
+Chromium/Chrome/Brave opens MaxNet in a clean app window with a separate persistent profile. Firefox uses a separate persistent profile in kiosk mode, hiding browser tabs and the address bar. Generic `xdg-open` fallback is limited to the full-site home shortcut so app launchers never unexpectedly open a tabbed browser.
 
 ## MaxNet OS updates
 

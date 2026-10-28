@@ -1,6 +1,12 @@
 name: Publish MaxNet OS release
 
 on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "maxnet-os/**"
+      - ".github/workflows/release-maxnet-os.yml"
   push:
     branches:
       - main
@@ -11,15 +17,28 @@ on:
       - ".github/workflows/release-maxnet-os.yml"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: maxnet-os-release
   cancel-in-progress: false
 
 jobs:
-  build-and-release:
+  launcher-checks:
     runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Test MaxOS app launchers
+        run: bash maxnet-os/tests/test-launchers.sh
+
+  build-and-release:
+    needs: launcher-checks
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Check out source
         uses: actions/checkout@v4

@@ -3,3 +3,4 @@
 - [MaxNet OS theme identity](maxnet-os-theme-identity.md) — Preserve the website's eight theme IDs as the OS choices and offer a local first-use theme picker.
 - [Mint ISO remastering in Replit](mint-iso-remaster.md) — Preserve fakeroot metadata, run long ISO writes in managed processes, and remove stale rootfs staging before packaging.
 - [MaxOS release publishing](maxos-release-publishing.md) — Keep updater packages on GitHub releases and publish each full ISO, using moonbat.ddns.net if needed.
+- [Cinnamon Start icon refresh](cinnamon-menu-icon-refresh.md) — Cinnamon's menu applet caches its global icon and label; refresh the shell only when MaxOS changes those settings.
