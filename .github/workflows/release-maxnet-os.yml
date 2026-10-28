@@ -43,6 +43,13 @@ jobs:
           grep -Fq 'celluloid | mpv' <<< "$dependencies"
           package_listing="$(dpkg-deb -c "$package")"
           grep -Fq 'usr/share/maxnet-os/maxos-intro.mp4' <<< "$package_listing"
+          for size in 24x24 48x48 96x96; do
+            grep -Fq "usr/share/icons/hicolor/$size/apps/maxnet-os-start-0-4-11.png" <<< "$package_listing"
+          done
+          if grep -Fq 'usr/share/icons/maxnet-os-start.svg' <<< "$package_listing"; then
+            echo "The obsolete Start icon is still in the package." >&2
+            exit 1
+          fi
 
   build-and-release:
     needs: launcher-checks

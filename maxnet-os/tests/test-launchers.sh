@@ -12,6 +12,14 @@ fail() {
   exit 1
 }
 
+start_icon_name="maxnet-os-start-0-4-11"
+fallback_icon_name="$(python3 "$repo_root/maxnet-os/bin/maxnet-os-sync-logo")"
+[[ "$fallback_icon_name" == "$start_icon_name" ]] || fail "Wrong offline Start icon fallback"
+for icon_size in 24x24 48x48 96x96; do
+  icon_path="$repo_root/maxnet-os/share/icons/hicolor/$icon_size/apps/$start_icon_name.png"
+  [[ -s "$icon_path" ]] || fail "Missing $icon_size Start icon asset"
+done
+
 contains_arg() {
   local expected="$1"
   shift

@@ -14,7 +14,7 @@ The OS theme chooser includes the same theme IDs as MaxNet:
 - Gold picture frame
 - Silver picture frame
 
-The theme IDs and names match MaxNet's `THEME_OPTIONS`. Each desktop theme includes coordinated Cinnamon taskbar/menu styling, native Muffin window decorations, GTK 3/4 titlebars and controls, and opaque content surfaces. The panel Start button uses the logo configured in MaxNet site settings when available and keeps a cached copy for offline use. If the logo changes, MaxOS refreshes the panel branding without requiring a full logout. Vista glass is rendered as an opaque, glossy frame instead of a see-through window. Choose **MaxOS Themes** from Start → System, or run `maxnet-os --choose-theme`. If account sync is skipped, a first-login chooser offers a local theme. The selected theme is passed to MaxNet when a launcher opens.
+The theme IDs and names match MaxNet's `THEME_OPTIONS`. Each desktop theme includes coordinated Cinnamon taskbar/menu styling, native Muffin window decorations, GTK 3/4 titlebars and controls, and opaque content surfaces. The Start button uses the supplied MaxOS logo by default, uses the logo configured in MaxNet site settings when available, and keeps that site logo cached for offline use. If the logo changes, MaxOS refreshes the panel branding without requiring a full logout. Vista glass is rendered as an opaque, glossy frame instead of a see-through window. Choose **MaxOS Themes** from Start → System, or run `maxnet-os --choose-theme`. If account sync is skipped, a first-login chooser offers a local theme. The selected theme is passed to MaxNet when a launcher opens.
 
 ## MaxNet applications in the MaxOS Start menu
 
