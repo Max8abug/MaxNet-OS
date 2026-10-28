@@ -5,7 +5,7 @@ Priority: optional
 Architecture: all
 Depends: bash, curl, policykit-1, python3, xdg-utils, zenity
 Recommends: chromium | chromium-browser | firefox
-Maintainer: MaxNet OS contributors
+Maintainer: MaxOS contributors
 Description: MaxNet-themed MaxOS desktop integration
  Eight MaxNet display themes for Cinnamon and GTK, startup theme selection,
  an update manager for checksum-verified GitHub releases, and app-menu

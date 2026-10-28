@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_NAME="MaxNet OS"
+APP_NAME="MaxOS"
 DEFAULT_URL="https://moonbat.ddns.net"
 FEATURE=""
 PRINT_URL=0
@@ -9,7 +9,7 @@ THEME_ID=""
 
 usage() {
   cat <<'EOF'
-MaxNet OS desktop launcher
+MaxOS desktop launcher
 
 Usage:
   maxnet-os [--feature NAME]
@@ -17,6 +17,8 @@ Usage:
   maxnet-os --choose-theme
   maxnet-os --theme THEME_ID
   maxnet-os --sync-theme URI
+  maxnet-os --sync-account
+  maxnet-os --handle-sync URI
   maxnet-os --restore-system-theme
 
 Features: home, signin, chat, forum, dms, network, network-people,
@@ -33,6 +35,9 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/maxnet-os"
 user_config="$config_dir/settings.conf"
 theme_config="$config_dir/theme"
+setup_complete="$config_dir/setup-prompt-complete"
+pending_sync="$config_dir/pending-sync"
+account_config="$config_dir/account.json"
 system_config="/etc/maxnet-os/settings.conf"
 version_file="/usr/share/maxnet-os/VERSION"
 base_url="${MAXNET_URL:-}"
@@ -83,7 +88,7 @@ theme_slug() {
     if validate_theme "$THEME_ID"; then
       return
     fi
-    printf '%s\n' "Invalid MaxNet OS theme setting: $THEME_ID" >&2
+    printf '%s\n' "Invalid MaxOS theme setting: $THEME_ID" >&2
     exit 1
   fi
   THEME_ID="classic-light"
@@ -100,7 +105,7 @@ theme_selected() {
 set_system_theme() {
   local selected="$1"
   validate_theme "$selected" || {
-    printf 'Unknown MaxNet OS theme: %s\n' "$selected" >&2
+    printf 'Unknown MaxOS theme: %s\n' "$selected" >&2
     usage >&2
     exit 2
   }
@@ -112,13 +117,13 @@ set_system_theme() {
 
 choose_system_theme() {
   command -v zenity >/dev/null 2>&1 || {
-    printf '%s\n' "Install zenity to choose a MaxNet OS theme from the desktop." >&2
+    printf '%s\n' "Install zenity to choose a MaxOS theme from the desktop." >&2
     exit 1
   }
   theme_slug
   local selected
   selected="$(zenity --list \
-    --title="MaxNet OS themes" \
+    --title="MaxOS themes" \
     --text="Choose a desktop theme. This also sets the theme used when MaxNet apps open." \
     --radiolist --column="Selected" --column="Theme ID" --column="Theme" \
     --hide-column=1 --print-column=2 \
@@ -136,21 +141,89 @@ choose_system_theme() {
 
 first_run() {
   apply_start_menu_icon
-  [[ -e "$theme_config" ]] && return 0
-  choose_system_theme
+  [[ -e "$setup_complete" ]] && {
+    [[ -e "$theme_config" ]] || choose_system_theme
+    return 0
+  }
+
+  if command -v zenity >/dev/null 2>&1 &&
+     zenity --question \
+       --title="MaxOS setup" \
+       --text="Sign in to MaxNet to sync your site theme, background, account permissions, and available apps. Your MaxNet password and local OS PIN stay separate. Site permissions never grant Linux administrator or sudo access." \
+       --ok-label="Connect MaxNet" \
+       --cancel-label="Continue offline"; then
+    if open_account_setup; then
+      zenity --info --title="MaxOS setup" \
+        --text="Finish sign-in in the MaxNet window and choose Sync my MaxNet settings. You can use MaxOS offline while setup continues." || true
+    else
+      zenity --warning --title="MaxOS setup" \
+        --text="A browser could not be opened. You can continue offline and sync your MaxNet account later from the Start menu." || true
+    fi
+  fi
+
+  install -d -m 700 "$config_dir"
+  (umask 077; : > "$setup_complete")
+  chmod 600 "$setup_complete"
+  [[ -e "$theme_config" ]] || choose_system_theme
+}
+
+open_account_setup() {
+  validate_url "$base_url" || {
+    printf 'Invalid MaxNet address in configuration: %s\n' "$base_url" >&2
+    return 1
+  }
+  command -v python3 >/dev/null 2>&1 || {
+    printf '%s\n' "Python 3 is required to start secure MaxNet account sync." >&2
+    return 1
+  }
+  register_sync_handler
+  local state url profile firefox_profile browser
+  state="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
+  install -d -m 700 "$config_dir"
+  (umask 077; printf '%s\n%s\n' "$state" "${base_url%/}" > "$pending_sync")
+  chmod 600 "$pending_sync"
+  url="${base_url%/}/?maxnet-os-setup=1&maxnet-os-state=$state"
+  profile="${XDG_DATA_HOME:-$HOME/.local/share}/maxnet-os/chromium"
+  for browser in chromium chromium-browser google-chrome-stable google-chrome brave-browser; do
+    if command -v "$browser" >/dev/null 2>&1; then
+      install -d -m 700 "$profile"
+      "$browser" --app="$url" --new-window \
+        --user-data-dir="$profile" --class="maxnet-os-setup" --name="MaxOS Setup" \
+        >/dev/null 2>&1 &
+      return 0
+    fi
+  done
+  if command -v firefox >/dev/null 2>&1; then
+    firefox_profile="${XDG_DATA_HOME:-$HOME/.local/share}/maxnet-os/firefox"
+    install -d -m 700 "$firefox_profile"
+    firefox --new-window --profile "$firefox_profile" "$url" >/dev/null 2>&1 &
+    return 0
+  fi
+  if command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$url" >/dev/null 2>&1 &
+    return 0
+  fi
+  printf '%s\n' "No supported browser was found for MaxNet account setup." >&2
+  return 1
 }
 
 apply_start_menu_icon() {
   command -v gsettings >/dev/null 2>&1 || return 0
   theme_slug
+  local settings_changed=0
 
   if gsettings writable org.cinnamon app-menu-label >/dev/null 2>&1; then
-    gsettings set org.cinnamon app-menu-label "Start" || {
-      printf '%s\n' "Could not set the Cinnamon Start menu label." >&2
-    }
+    local current_label
+    current_label="$(gsettings get org.cinnamon app-menu-label 2>/dev/null || true)"
+    if [[ "$current_label" != "'Start'" ]]; then
+      if gsettings set org.cinnamon app-menu-label "Start"; then
+        settings_changed=1
+      else
+        printf '%s\n' "Could not set the Cinnamon Start menu label." >&2
+      fi
+    fi
   fi
 
-  gsettings writable org.cinnamon app-menu-icon-name >/dev/null 2>&1 || return 0
   local icon_name="maxnet-os-start"
   local icon_sync
   if command -v maxnet-os-sync-logo >/dev/null 2>&1; then
@@ -164,15 +237,45 @@ apply_start_menu_icon() {
     icon_name="$("$icon_sync" "$base_url" "$THEME_ID" 2>/dev/null || printf '%s' "$icon_name")"
     [[ -n "$icon_name" ]] || icon_name="maxnet-os-start"
   fi
-  if ! gsettings set org.cinnamon app-menu-icon-name "$icon_name"; then
-    printf '%s\n' "Could not set the Cinnamon Start menu icon." >&2
+
+  if gsettings writable org.cinnamon app-menu-icon-name >/dev/null 2>&1; then
+    local current_icon
+    current_icon="$(gsettings get org.cinnamon app-menu-icon-name 2>/dev/null || true)"
+    if [[ "$current_icon" != "'$icon_name'" ]]; then
+      if gsettings set org.cinnamon app-menu-icon-name "$icon_name"; then
+        settings_changed=1
+      else
+        printf '%s\n' "Could not set the Cinnamon Start menu icon." >&2
+      fi
+    fi
+  fi
+
+  # Cinnamon's menu applet reads these global settings at startup but does not
+  # refresh its icon when they change. Restart Cinnamon only after a real
+  # setting change so the site logo appears now, without a restart loop at login.
+  if (( settings_changed )); then
+    if command -v cinnamon >/dev/null 2>&1 &&
+       { [[ -n "${DISPLAY:-}" ]] || [[ -n "${WAYLAND_DISPLAY:-}" ]]; }; then
+      cinnamon --replace >/dev/null 2>&1 &
+    else
+      printf '%s\n' "The Start button branding will refresh at the next Cinnamon login."
+    fi
   fi
 }
 
 show_update_error() {
   local message="$1"
   if command -v zenity >/dev/null 2>&1; then
-    zenity --error --title="MaxNet OS Update Manager" --text="$message" || true
+    zenity --error --title="MaxOS Update Manager" --text="$message" || true
+  else
+    printf '%s\n' "$message" >&2
+  fi
+}
+
+show_account_error() {
+  local message="$1"
+  if command -v zenity >/dev/null 2>&1; then
+    zenity --error --title="MaxNet account sync" --text="$message" || true
   else
     printf '%s\n' "$message" >&2
   fi
@@ -223,7 +326,7 @@ try:
 except HTTPError as error:
     if error.code == 404:
         print(
-            "No stable MaxNet OS release has been published yet. "
+            "No stable MaxOS release has been published yet. "
             "The updater needs a release containing this system's .deb package "
             "and its .sha256 checksum.\n"
             "Release page: https://github.com/Max8abug/MaxNet-OS/releases",
@@ -233,7 +336,7 @@ except HTTPError as error:
         print(f"GitHub release check failed with HTTP {error.code}.", file=sys.stderr)
     raise SystemExit(1)
 except (URLError, TimeoutError, json.JSONDecodeError) as error:
-    print(f"Could not reach the MaxNet OS release service: {error}", file=sys.stderr)
+    print(f"Could not reach the MaxOS release service: {error}", file=sys.stderr)
     raise SystemExit(1)
 
 tag = release.get("tag_name", "")
@@ -275,18 +378,18 @@ PY
 )"; then
     latest_info="$(cat "$error_file" 2>/dev/null || true)"
     rm -f "$error_file"
-    show_update_error "${latest_info:-Could not check GitHub for MaxNet OS updates.}"
+    show_update_error "${latest_info:-Could not check GitHub for MaxOS updates.}"
     return 1
   fi
   rm -f "$error_file"
   IFS=$'\t' read -r remote_version package_name package_url checksum_url release_digest <<< "$latest_info"
   if ! dpkg --compare-versions "$remote_version" gt "$current_version"; then
-    zenity --info --title="MaxNet OS Update Manager" \
-      --text="MaxNet OS is up to date.\n\nInstalled version: $current_version\nLatest release: $remote_version" || true
+    zenity --info --title="MaxOS Update Manager" \
+      --text="MaxOS is up to date.\n\nInstalled version: $current_version\nLatest release: $remote_version" || true
     return 0
   fi
 
-  if ! zenity --question --title="MaxNet OS Update Available" \
+  if ! zenity --question --title="MaxOS Update Available" \
     --text="Version $remote_version is available (installed: $current_version).\n\nDownload and verify the package before installing it?"; then
     return 0
   fi
@@ -314,7 +417,7 @@ PY
   package_version="$(dpkg-deb --field "$deb_file" Version 2>/dev/null || true)"
   if [[ "$(dpkg-deb --field "$deb_file" Package 2>/dev/null || true)" != "maxnet-os" ||
         "$package_version" != "$remote_version" ]]; then
-    show_update_error "The downloaded file is not the expected MaxNet OS package version. Installation was stopped."
+    show_update_error "The downloaded file is not the expected MaxOS package version. Installation was stopped."
     return 1
   fi
 
@@ -323,8 +426,8 @@ PY
     return 1
   fi
   if pkexec apt-get install -y "$deb_file"; then
-    zenity --info --title="MaxNet OS Updated" \
-      --text="MaxNet OS $remote_version was installed successfully." || true
+    zenity --info --title="MaxOS Updated" \
+      --text="MaxOS $remote_version was installed successfully." || true
   else
     show_update_error "The package installation did not complete. Check the authentication prompt and package manager output."
     return 1
@@ -335,7 +438,7 @@ sync_system_theme() {
   local request="$1"
   local selected="${request#maxnet-os://theme/}"
   if [[ "$request" != maxnet-os://theme/* ]] || ! validate_theme "$selected"; then
-    printf '%s\n' "Rejected an invalid MaxNet OS theme sync request." >&2
+    printf '%s\n' "Rejected an invalid MaxOS theme sync request." >&2
     exit 2
   fi
   command -v zenity >/dev/null 2>&1 || {
@@ -347,6 +450,313 @@ sync_system_theme() {
     --text="Apply the signed-in MaxNet account's $selected theme to this MaxOS desktop?"; then
     set_system_theme "$selected"
   fi
+}
+
+sync_account_settings() {
+  local request="$1"
+  local callback state code
+  local pending_state pending_server api_url
+  local import_dir request_file response_file
+  local account_data background_dir account_summary selected_theme selected_background background_color
+
+  if ! callback="$(python3 - "$request" <<'PY'
+from urllib.parse import parse_qs, urlsplit
+import re
+import sys
+
+url = urlsplit(sys.argv[1])
+values = parse_qs(url.query, strict_parsing=True)
+state = values.get("state", [""])[0]
+code = values.get("code", [""])[0]
+if url.scheme != "maxnet-os" or url.netloc != "sync":
+    raise SystemExit("Invalid MaxOS account-sync link.")
+if not re.fullmatch(r"[A-Za-z0-9_-]{43}", state) or not re.fullmatch(r"[A-Za-z0-9_-]{43}", code):
+    raise SystemExit("The MaxOS account-sync link is invalid or incomplete.")
+print(state)
+print(code)
+PY
+  )"; then
+    show_account_error "The MaxOS account-sync link is invalid."
+    return 1
+  fi
+  mapfile -t callback_fields <<< "$callback"
+  state="${callback_fields[0]:-}"
+  code="${callback_fields[1]:-}"
+
+  if [[ ! -r "$pending_sync" ]]; then
+    show_account_error "This MaxOS setup request is no longer active. Open Sync MaxNet Account from the Start menu and try again."
+    return 1
+  fi
+  mapfile -t pending_fields < "$pending_sync"
+  pending_state="${pending_fields[0]:-}"
+  pending_server="${pending_fields[1]:-}"
+  if [[ "$state" != "$pending_state" ]] || ! validate_url "$pending_server"; then
+    show_account_error "This MaxOS setup link does not match the request from this computer."
+    return 1
+  fi
+
+  install -d -m 700 "$config_dir"
+  import_dir="$(mktemp -d "${TMPDIR:-/tmp}/maxnet-os-sync.XXXXXX")"
+  chmod 700 "$import_dir"
+  request_file="$import_dir/request.json"
+  response_file="$import_dir/response.json"
+  python3 - "$code" "$state" > "$request_file" <<'PY'
+import json
+import sys
+json.dump({"code": sys.argv[1], "state": sys.argv[2]}, sys.stdout)
+PY
+  chmod 600 "$request_file"
+  api_url="${pending_server%/}/api/os/setup/redeem"
+  if ! curl --fail --silent --show-error --max-time 45 --connect-timeout 10 \
+    --proto '=https' \
+    --header 'Content-Type: application/json' \
+    --data-binary "@$request_file" \
+    "$api_url" -o "$response_file"; then
+    rm -rf "$import_dir"
+    show_account_error "MaxNet could not return the account settings. Check that the site is online, then start account sync again."
+    return 1
+  fi
+  chmod 600 "$response_file"
+
+  if ! python3 - "$response_file" "$import_dir" <<'PY'
+import base64
+import json
+import os
+import re
+import sys
+from pathlib import Path
+
+source = Path(sys.argv[1])
+target = Path(sys.argv[2])
+payload = json.loads(source.read_text())
+if payload.get("version") != 1:
+    raise SystemExit("Unsupported MaxNet account settings version.")
+
+valid_apps = {
+    "home", "signin", "chat", "forum", "dms", "network", "network-people",
+    "network-wiki", "gallery", "users", "visits", "guestbook", "planner",
+    "news", "games", "eaglercraft", "mypage", "youtube", "polls", "music",
+    "playlists", "drawing", "settings",
+}
+username = payload.get("username")
+if not isinstance(username, str) or not 2 <= len(username) <= 32 or any(ord(c) < 32 for c in username):
+    raise SystemExit("Invalid MaxNet account name.")
+rank = payload.get("rank")
+if rank is not None and (not isinstance(rank, str) or len(rank) > 64):
+    raise SystemExit("Invalid MaxNet account rank.")
+permissions = payload.get("permissions")
+if not isinstance(permissions, list) or len(permissions) > 64 or any(
+    not isinstance(item, str) or len(item) > 64 for item in permissions
+):
+    raise SystemExit("Invalid MaxNet account permissions.")
+apps = payload.get("apps")
+if not isinstance(apps, list) or any(not isinstance(item, str) or item not in valid_apps for item in apps):
+    raise SystemExit("Invalid MaxNet app list.")
+appearance = payload.get("appearance")
+if not isinstance(appearance, dict):
+    raise SystemExit("Invalid MaxNet appearance settings.")
+theme = appearance.get("displayTheme")
+valid_themes = {
+    "classic-light", "classic-dark", "xp-light", "xp-dark",
+    "vista", "vista-dark", "gold", "silver",
+}
+if theme is not None and theme not in valid_themes:
+    raise SystemExit("Invalid MaxNet display theme.")
+color = appearance.get("backgroundColor")
+if not isinstance(color, str) or not re.fullmatch(r"#[0-9A-Fa-f]{6}", color):
+    color = None
+time_zone = appearance.get("timeZone")
+if not isinstance(time_zone, str) or len(time_zone) > 64:
+    time_zone = None
+
+def save_background(value, name):
+    if not isinstance(value, str) or len(value) > 4_000_000:
+        return None
+    match = re.fullmatch(r"data:image/(png|jpeg|webp);base64,([A-Za-z0-9+/=\r\n]+)", value)
+    if not match:
+        return None
+    image_type, encoded = match.groups()
+    try:
+        data = base64.b64decode(encoded, validate=True)
+    except (ValueError, base64.binascii.Error):
+        return None
+    if len(data) > 3_000_000:
+        return None
+    signatures = {
+        "png": data.startswith(b"\x89PNG\r\n\x1a\n"),
+        "jpeg": data.startswith(b"\xff\xd8\xff"),
+        "webp": len(data) >= 12 and data[:4] == b"RIFF" and data[8:12] == b"WEBP",
+    }
+    if not signatures[image_type]:
+        return None
+    extension = {"png": "png", "jpeg": "jpg", "webp": "webp"}[image_type]
+    path = target / f"{name}.{extension}"
+    path.write_bytes(data)
+    os.chmod(path, 0o600)
+    return path.name
+
+light_background = save_background(appearance.get("backgroundUrl"), "background-light")
+dark_background = save_background(appearance.get("darkBackgroundUrl"), "background-dark")
+account = {
+    "version": 1,
+    "username": username,
+    "rank": rank,
+    "isMaxNetAdmin": payload.get("isMaxNetAdmin") is True,
+    "permissions": sorted(set(permissions)),
+    "apps": sorted(set(apps)),
+    "archivedFeatures": [
+        item for item in payload.get("archivedFeatures", [])
+        if isinstance(item, str) and len(item) <= 64
+    ][:128],
+    "appearance": {
+        "displayTheme": theme,
+        "backgroundColor": color,
+        "timeZone": time_zone,
+        "backgroundLight": light_background,
+        "backgroundDark": dark_background,
+    },
+    "syncedAt": payload.get("issuedAt") if isinstance(payload.get("issuedAt"), str) else "",
+}
+(target / "account.json").write_text(json.dumps(account, separators=(",", ":")) + "\n")
+os.chmod(target / "account.json", 0o600)
+PY
+  then
+    rm -rf "$import_dir"
+    show_account_error "MaxNet returned account settings that MaxOS could not validate. Nothing was applied."
+    return 1
+  fi
+
+  account_summary="$(python3 - "$import_dir/account.json" <<'PY'
+import json
+import sys
+value = json.load(open(sys.argv[1], encoding="utf-8"))
+appearance = value["appearance"]
+theme = appearance.get("displayTheme") or "keep current theme"
+rank = value.get("rank") or "member"
+print(f"Account: {value['username']}\nMaxNet rank: {rank}\nSite permissions: {len(value['permissions'])}\nAvailable MaxNet apps: {len(value['apps'])}\nDisplay theme: {theme}\n\nThis does not change Linux administrator or sudo access.")
+PY
+  )"
+  if ! command -v zenity >/dev/null 2>&1 || ! zenity --question \
+    --title="Apply MaxNet settings to MaxOS" \
+    --width=520 \
+    --text="$account_summary" \
+    --ok-label="Apply settings" \
+    --cancel-label="Keep local settings"; then
+    rm -rf "$import_dir"
+    rm -f "$pending_sync"
+    return 0
+  fi
+
+  account_data="${XDG_DATA_HOME:-$HOME/.local/share}/maxnet-os"
+  background_dir="$account_data/backgrounds"
+  install -d -m 700 "$account_data" "$background_dir"
+  selected_theme="$(python3 - "$import_dir/account.json" <<'PY'
+import json, sys
+print(json.load(open(sys.argv[1], encoding="utf-8"))["appearance"].get("displayTheme") or "")
+PY
+  )"
+  if [[ -n "$selected_theme" ]]; then
+    set_system_theme "$selected_theme" || {
+      rm -rf "$import_dir"
+      show_account_error "The MaxNet theme could not be applied. Your account settings were not saved."
+      return 1
+    }
+  else
+    theme_slug
+    apply_system_theme
+  fi
+
+  local image_name=""
+  if [[ "$THEME_ID" == *-dark ]]; then
+    image_name="$(python3 - "$import_dir/account.json" <<'PY'
+import json, sys
+appearance = json.load(open(sys.argv[1], encoding="utf-8"))["appearance"]
+print(appearance.get("backgroundDark") or appearance.get("backgroundLight") or "")
+PY
+    )"
+  else
+    image_name="$(python3 - "$import_dir/account.json" <<'PY'
+import json, sys
+appearance = json.load(open(sys.argv[1], encoding="utf-8"))["appearance"]
+print(appearance.get("backgroundLight") or appearance.get("backgroundDark") or "")
+PY
+    )"
+  fi
+  if [[ -n "$image_name" && -f "$import_dir/$image_name" ]]; then
+    cp "$import_dir/$image_name" "$background_dir/$image_name"
+    chmod 600 "$background_dir/$image_name"
+    selected_background="$background_dir/$image_name"
+    gsettings set org.cinnamon.desktop.background picture-uri "file://$selected_background"
+  else
+    background_color="$(python3 - "$import_dir/account.json" <<'PY'
+import json, sys
+print(json.load(open(sys.argv[1], encoding="utf-8"))["appearance"].get("backgroundColor") or "")
+PY
+    )"
+    if [[ "$background_color" =~ ^#[[:xdigit:]]{6}$ ]]; then
+      selected_background="$background_dir/maxnet-account-background.svg"
+      python3 - "$background_color" "$selected_background" <<'PY'
+import os, re, sys
+color = sys.argv[1]
+if not re.fullmatch(r"#[0-9A-Fa-f]{6}", color):
+    raise SystemExit(1)
+with open(sys.argv[2], "w", encoding="utf-8") as output:
+    output.write(f'<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080"><rect width="100%" height="100%" fill="{color}"/></svg>\n')
+os.chmod(sys.argv[2], 0o600)
+PY
+      gsettings set org.cinnamon.desktop.background picture-uri "file://$selected_background"
+    fi
+  fi
+
+  install -m 600 "$import_dir/account.json" "$account_config"
+  sync_feature_visibility
+  rm -f "$pending_sync"
+  rm -rf "$import_dir"
+  zenity --info --title="MaxOS account sync complete" \
+    --text="MaxNet settings for $(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["username"])' "$account_config") were synced. Your Linux login and administrator permissions were not changed." || true
+}
+
+handle_sync_uri() {
+  local request="$1"
+  if [[ "$request" == maxnet-os://theme/* ]]; then
+    sync_system_theme "$request"
+  else
+    sync_account_settings "$request"
+  fi
+}
+
+sync_feature_visibility() {
+  [[ -r "$account_config" ]] || return 0
+  local feature_table="/usr/share/maxnet-os/features.tsv"
+  [[ -r "$feature_table" ]] || feature_table="$script_dir/../share/applications/features.tsv"
+  [[ -r "$feature_table" ]] || return 0
+  local applications_dir="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
+  install -d -m 700 "$applications_dir"
+  python3 - "$account_config" "$feature_table" "$applications_dir" <<'PY'
+import json
+import os
+import sys
+from pathlib import Path
+
+account = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+available = set(account.get("apps", []))
+feature_table = Path(sys.argv[2])
+applications = Path(sys.argv[3])
+marker = "# Generated by MaxOS account sync; do not edit."
+for line in feature_table.read_text(encoding="utf-8").splitlines():
+    if not line or line.startswith("#"):
+        continue
+    feature = line.split("|", 1)[0]
+    desktop = applications / f"maxnet-{feature}.desktop"
+    if feature in available:
+        if desktop.is_file() and marker in desktop.read_text(encoding="utf-8", errors="replace"):
+            desktop.unlink()
+        continue
+    if desktop.exists() and marker not in desktop.read_text(encoding="utf-8", errors="replace"):
+        continue
+    desktop.write_text(f"[Desktop Entry]\nHidden=true\n{marker}\n", encoding="utf-8")
+    os.chmod(desktop, 0o600)
+PY
 }
 
 register_sync_handler() {
@@ -362,7 +772,7 @@ configure_url() {
   }
   local entered
   entered="$(zenity --entry \
-    --title="MaxNet OS connection" \
+    --title="MaxOS connection" \
     --text="Enter the HTTPS address of your MaxNet server:" \
     --entry-text="$base_url")" || exit 0
   entered="${entered%/}"
@@ -373,7 +783,7 @@ configure_url() {
   fi
   install -d -m 700 "$config_dir"
   (umask 077; printf '%s\n' "$entered" > "$user_config")
-  zenity --info --title="MaxNet OS" --text="MaxNet server saved." || true
+  zenity --info --title="MaxOS" --text="MaxNet server saved." || true
 }
 
 apply_system_theme() {
@@ -497,6 +907,15 @@ while (($#)); do
     --first-run)
       first_run
       exit 0
+      ;;
+    --sync-account)
+      open_account_setup
+      exit $?
+      ;;
+    --handle-sync)
+      (($# >= 2)) || { usage >&2; exit 2; }
+      handle_sync_uri "$2"
+      exit $?
       ;;
     --updates)
       check_for_updates

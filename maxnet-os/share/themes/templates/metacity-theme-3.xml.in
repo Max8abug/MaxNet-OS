@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <metacity_theme>
   <info>
-    <name>MaxNet desktop window theme</name>
-    <author>MaxNet OS project</author>
+    <name>MaxOS desktop window theme</name>
+    <author>MaxOS project</author>
     <description>Opaque native window decorations adapted from MaxNet display themes.</description>
   </info>
 
@@ -41,16 +41,16 @@
 
   <draw_ops name="title_active">
     <title version="&gt;= 3.1"
-           x="(0 `max` ((frame_x_center - title_width / 2) `min` (width - title_width)))"
+           x="14"
            y="(0 `max` ((height - title_height) / 2))"
-           ellipsize_width="width"
+           ellipsize_width="width - 132"
            color="C_title_active"/>
   </draw_ops>
   <draw_ops name="title_inactive">
     <title version="&gt;= 3.1"
-           x="(0 `max` ((frame_x_center - title_width / 2) `min` (width - title_width)))"
+           x="14"
            y="(0 `max` ((height - title_height) / 2))"
-           ellipsize_width="width"
+           ellipsize_width="width - 132"
            color="C_title_inactive"/>
   </draw_ops>
 

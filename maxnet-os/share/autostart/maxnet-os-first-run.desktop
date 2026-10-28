@@ -1,8 +1,8 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=MaxNet OS First Run
-Comment=Choose your MaxNet desktop theme
+Name=MaxOS First Run
+Comment=Choose your MaxOS desktop theme
 Exec=maxnet-os --first-run
 Terminal=false
 NoDisplay=true

@@ -6,4 +6,4 @@ Comment=Change the local MaxOS login password; it is also used for sudo
 Exec=passwd
 Icon=dialog-password
 Terminal=true
-Categories=Settings;Security;
+Categories=X-MaxOS-System;
