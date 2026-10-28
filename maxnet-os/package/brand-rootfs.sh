@@ -8,6 +8,7 @@ PLYMOUTH_DIR="$ROOTFS/usr/share/plymouth/themes/mint-logo"
 BRANDING_DIR="$PACKAGE_ROOT/share/branding"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
+logo_data_uri="data:image/png;base64,$(base64 -w 0 "$PACKAGE_ROOT/share/branding/maxnet-user-logo.png")"
 
 for command_name in magick python3; do
   command -v "$command_name" >/dev/null 2>&1 || {
@@ -28,8 +29,9 @@ magick "$BRANDING_DIR/boot-icon.png" -trim +repage -resize 88x88 \
 magick "$WORK/maxos-boot-base.png" "$WORK/boot-icon.png" \
   -gravity northwest -geometry +26+54 -compose over -composite \
   "$WORK/maxos-boot.png"
-magick "$PACKAGE_ROOT/share/backgrounds/maxnet-os.svg" \
-  -quality 88 "$WORK/maxos-login.jpg"
+sed -e "s|@MAXNET_LOGO_DATA_URI@|$logo_data_uri|g" \
+  "$PACKAGE_ROOT/share/backgrounds/maxnet-os.svg.in" > "$WORK/maxnet-os.svg"
+magick "$WORK/maxnet-os.svg" -quality 88 "$WORK/maxos-login.jpg"
 
 install -Dm644 "$WORK/maxos-boot.png" "$PLYMOUTH_DIR/animation-0001.png"
 for frame in $(seq -w 2 36); do
@@ -41,7 +43,9 @@ done
 install -m644 "$WORK/maxos-boot.png" "$PLYMOUTH_DIR/bgrt-fallback.png"
 install -Dm644 "$WORK/maxos-login.jpg" \
   "$ROOTFS/usr/share/backgrounds/maxos-login.jpg"
-install -Dm644 "$PACKAGE_ROOT/share/icons/maxnet.svg" \
+sed -e "s|@MAXNET_LOGO_DATA_URI@|$logo_data_uri|g" \
+  "$PACKAGE_ROOT/share/icons/maxnet.svg.in" > "$WORK/maxnet.svg"
+install -Dm644 "$WORK/maxnet.svg" \
   "$ROOTFS/usr/share/icons/hicolor/scalable/apps/maxos.svg"
 
 python3 - "$ROOTFS" "$VERSION" <<'PY'

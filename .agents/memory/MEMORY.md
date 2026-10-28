@@ -2,3 +2,7 @@
 - [MaxNet OS offline login](maxnet-os-auth.md) — Keep the Mint login credential local and offline-capable; MaxNet account sync is for settings, not OS credentials.
 - [MaxNet OS theme identity](maxnet-os-theme-identity.md) — Preserve the website's eight theme IDs as the OS choices and offer a local first-use theme picker.
 - [Mint ISO remastering in Replit](mint-iso-remaster.md) — Preserve fakeroot metadata, run long ISO writes in managed processes, and remove stale rootfs staging before packaging.
+- [MaxOS release publishing](maxos-release-publishing.md) — Keep updater packages on GitHub releases and publish each full ISO, using moonbat.ddns.net if needed.
+- [Cinnamon Start icon refresh](cinnamon-menu-icon-refresh.md) — Cinnamon's menu applet caches its global icon and label; refresh the shell only when MaxOS changes those settings.
+- [MaxOS intro-player compatibility](maxos-intro-player.md) — The Mint live ISO has Celluloid but not the mpv CLI; remastering extracts debs without resolving dependencies.
+- [MaxOS logo identity](maxos-logo-identity.md) — Use the supplied cat mark for generated M branding; keep the portrait boot icon and app-specific icons.

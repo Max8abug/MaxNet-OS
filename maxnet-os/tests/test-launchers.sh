@@ -12,12 +12,15 @@ fail() {
   exit 1
 }
 
-start_icon_name="maxnet-os-start-0-4-11"
+start_icon_name="maxnet-os-start-0-4-13"
 fallback_icon_name="$(python3 "$repo_root/maxnet-os/bin/maxnet-os-sync-logo")"
-[[ "$fallback_icon_name" == "$start_icon_name" ]] || fail "Wrong offline Start icon fallback"
+[[ "$fallback_icon_name" == "$start_icon_name" ]] \
+  || fail "Offline Start icon fallback was '$fallback_icon_name'"
 for icon_size in 24x24 48x48 96x96; do
   icon_path="$repo_root/maxnet-os/share/icons/hicolor/$icon_size/apps/$start_icon_name.png"
   [[ -s "$icon_path" ]] || fail "Missing $icon_size Start icon asset"
+  file "$icon_path" | grep -Fq 'PNG image data' \
+    || fail "Start icon at $icon_size is not a PNG"
 done
 
 contains_arg() {
@@ -37,7 +40,7 @@ make_test_path() {
   mkdir -p "$path_dir"
 
   local tool target
-  for tool in python3 install date dirname chmod; do
+  for tool in python3 install date dirname chmod cat sleep; do
     target="$(command -v "$tool")" || fail "Required test utility not found: $tool"
     ln -s "$target" "$path_dir/$tool"
   done
@@ -149,12 +152,32 @@ run_and_check() {
     fi
     url="${args[0]#--app=}"
   else
-    [[ "${args[0]:-}" == "--kiosk" ]] || fail "Firefox omitted kiosk mode for '$feature'"
-    contains_arg "--new-window" "${args[@]}" || fail "Firefox omitted --new-window for '$feature'"
+    [[ "${args[0]:-}" == "--new-window" ]] \
+      || fail "Firefox did not open a regular app window for '$feature'"
+    if contains_arg "--kiosk" "${args[@]}" || contains_arg "--fullscreen" "${args[@]}"; then
+      fail "Firefox launched '$feature' fullscreen"
+    fi
     contains_arg "--profile" "${args[@]}" || fail "Firefox omitted its persistent profile for '$feature'"
-    [[ "${args[3]:-}" == "$data_dir/maxnet-os/firefox" ]] \
+    [[ "${args[2]:-}" == "$data_dir/maxnet-os/firefox" ]] \
       || fail "Firefox profile path was wrong for '$feature'"
-    url="${args[4]:-}"
+    local firefox_profile="$data_dir/maxnet-os/firefox"
+    [[ -s "$firefox_profile/user.js" ]] \
+      || fail "Firefox profile did not enable userChrome stylesheets"
+    grep -Fq 'user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);' \
+      "$firefox_profile/user.js" || fail "Firefox did not enable custom app-window chrome"
+    grep -Fq 'user_pref("browser.tabs.inTitlebar", 0);' \
+      "$firefox_profile/user.js" || fail "Firefox did not request a native draggable title bar"
+    [[ -s "$firefox_profile/chrome/userChrome.css" ]] \
+      || fail "Firefox profile did not install its app-window toolbar rules"
+    for toolbar in '#TabsToolbar' '#nav-bar' '#PersonalToolbar' '#toolbar-menubar'; do
+      grep -Fq "$toolbar" "$firefox_profile/chrome/userChrome.css" \
+        || fail "Firefox app-window chrome rule is missing $toolbar"
+    done
+    grep -Fq 'visibility: collapse !important;' "$firefox_profile/chrome/userChrome.css" \
+      || fail "Firefox browser toolbars remain visible"
+    grep -Fq '#titlebar' "$firefox_profile/chrome/userChrome.css" \
+      && fail "Firefox app styling must not hide the draggable title bar"
+    url="${args[3]:-}"
   fi
 
   if [[ "$feature" == "home" ]]; then
@@ -177,6 +200,33 @@ for feature in "${features[@]}"; do
 done
 run_and_check chromium "$chromium_path" home
 run_and_check firefox "$firefox_path" home
+
+account_setup_args="$tmp_dir/account-setup-args"
+account_setup_data="$tmp_dir/data-account-setup"
+MAXOS_TEST_ARGS="$account_setup_args" \
+  MAXNET_URL="https://moonbat.ddns.net" \
+  XDG_CONFIG_HOME="$tmp_dir/config-account-setup" \
+  XDG_DATA_HOME="$account_setup_data" \
+  PATH="$firefox_path" \
+  "$BASH" "$launcher" --sync-account \
+  || fail "Firefox failed to open the MaxNet account setup window"
+for _ in {1..50}; do
+  [[ -s "$account_setup_args" ]] && break
+  sleep 0.02
+done
+[[ -s "$account_setup_args" ]] || fail "Firefox did not receive the account setup URL"
+mapfile -d '' -t account_setup_launch_args < "$account_setup_args"
+[[ "${account_setup_launch_args[0]:-}" == "--new-window" ]] \
+  || fail "Firefox account setup did not use a regular window"
+if contains_arg "--kiosk" "${account_setup_launch_args[@]}" ||
+   contains_arg "--fullscreen" "${account_setup_launch_args[@]}"; then
+  fail "Firefox account setup launched fullscreen"
+fi
+account_setup_profile="$account_setup_data/maxnet-os/firefox"
+grep -Fq 'user_pref("browser.tabs.inTitlebar", 0);' "$account_setup_profile/user.js" \
+  || fail "Firefox account setup did not preserve the native title bar"
+grep -Fq '#nav-bar' "$account_setup_profile/chrome/userChrome.css" \
+  || fail "Firefox account setup did not hide browser controls"
 
 invalid_output="$tmp_dir/invalid-feature.out"
 if MAXNET_URL="https://moonbat.ddns.net" \
@@ -255,7 +305,8 @@ if grep -Fq "intro" "$intro_events" || [[ -e "$intro_args" ]]; then
   fail "The intro video replayed after first-run setup was complete"
 fi
 
-printf 'PASS: %d MaxNet menu launchers plus Home work in Chromium app mode and Firefox kiosk mode.\n' \
+printf 'PASS: %d MaxNet menu launchers plus Home work in Chromium and decorated Firefox app windows.\n' \
   "${#features[@]}"
 printf 'PASS: unknown features and unsupported browsers fail safely.\n'
+printf 'PASS: Firefox account setup also opens as a decorated, non-fullscreen window.\n'
 printf 'PASS: first-run intro uses mpv or Celluloid before setup, once only.\n'

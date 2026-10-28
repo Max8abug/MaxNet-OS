@@ -1,0 +1,38 @@
+.maxnet-current {
+  --background: 180 100% 25%;
+  --foreground: 0 0% 0%;
+  --card: 0 0% 75%;
+  --card-foreground: 0 0% 0%;
+  --app-font-sans: "MS Sans Serif", Tahoma, sans-serif;
+  font-family: var(--app-font-sans);
+  image-rendering: pixelated;
+}
+
+.maxnet-current .win98-window,
+.maxnet-current .win98-menu {
+  background-color: hsl(var(--card));
+  border-top: 2px solid white;
+  border-left: 2px solid white;
+  border-right: 2px solid black;
+  border-bottom: 2px solid black;
+  box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080, 1px 1px 0 0 #000;
+  padding: 2px;
+}
+
+.maxnet-current .win98-titlebar {
+  background: linear-gradient(90deg, #000080, #1084d0);
+  color: white;
+  padding: 3px 5px;
+  font-weight: bold;
+}
+
+.maxnet-current .win98-button {
+  background: hsl(var(--card));
+  border-top: 1px solid white;
+  border-left: 1px solid white;
+  border-right: 1px solid black;
+  border-bottom: 1px solid black;
+  box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #808080;
+  color: black;
+  font-weight: bold;
+}

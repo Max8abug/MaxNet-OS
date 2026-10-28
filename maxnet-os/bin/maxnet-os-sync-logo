@@ -17,7 +17,7 @@ from urllib.error import URLError
 from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 
-FALLBACK = "maxnet-os-start-0-4-11"
+FALLBACK = "maxnet-os-start-0-4-13"
 MAX_RESPONSE_BYTES = 16 * 1024 * 1024
 MAX_LOGO_BYTES = 300_000
 FORMATS = {"png": "png", "jpeg": "jpg", "gif": "gif", "webp": "webp"}

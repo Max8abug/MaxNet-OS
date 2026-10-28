@@ -14,7 +14,7 @@ The OS theme chooser includes the same theme IDs as MaxNet:
 - Gold picture frame
 - Silver picture frame
 
-The theme IDs and names match MaxNet's `THEME_OPTIONS`. Each desktop theme includes coordinated Cinnamon taskbar/menu styling, native Muffin window decorations, GTK 3/4 titlebars and controls, and opaque content surfaces. The Start button uses the supplied MaxOS logo by default, uses the logo configured in MaxNet site settings when available, and keeps that site logo cached for offline use. If the logo changes, MaxOS refreshes the panel branding without requiring a full logout. Vista glass is rendered as an opaque, glossy frame instead of a see-through window. Choose **MaxOS Themes** from Start → System, or run `maxnet-os --choose-theme`. If account sync is skipped, a first-login chooser offers a local theme. The selected theme is passed to MaxNet when a launcher opens.
+The theme IDs and names match MaxNet's `THEME_OPTIONS`. Each desktop theme includes coordinated Cinnamon taskbar/menu styling, native Muffin window decorations, GTK 3/4 titlebars and controls, and opaque content surfaces. The supplied cat logo is used across the MaxOS identity icon and desktop backgrounds; its transparent mark keeps the original magenta detail against each theme. The Start button uses the supplied MaxOS logo by default, uses the logo configured in MaxNet site settings when available, and keeps that site logo cached for offline use. If the logo changes, MaxOS refreshes the panel branding without requiring a full logout. Vista glass is rendered as an opaque, glossy frame instead of a see-through window. Choose **MaxOS Themes** from Start → System, or run `maxnet-os --choose-theme`. If account sync is skipped, a first-login chooser offers a local theme. The selected theme is passed to MaxNet when a launcher opens.
 
 ## MaxNet applications in the MaxOS Start menu
 
@@ -32,7 +32,7 @@ Synced app availability controls MaxOS's launcher visibility, not site authoriza
 
 The **Sign in to MaxNet** launcher uses the normal MaxNet account dialog and keeps its session in a separate persistent browser profile. The local OS login PIN/password is never sent to MaxNet or synced; it is managed by Linux Mint, and the same local credential is also used for `sudo`.
 
-App launch supports sign-in, Chatroom, Forums, Direct Messages, Network, Eaglercraft, and the other MaxNet apps listed in the menu. Each feature launcher opens the matching MaxNet component without the website's desktop, taskbar, or navigation shell. Chromium/Chrome/Brave uses a native app window without browser controls; Firefox uses kiosk mode to hide tabs and the address bar. Firefox kiosk windows are full-screen.
+App launch supports sign-in, Chatroom, Forums, Direct Messages, Network, Eaglercraft, and the other MaxNet apps listed in the menu. Each feature launcher opens the matching MaxNet component without the website's desktop, taskbar, or navigation shell. Chromium/Chrome/Brave uses a native app window without browser controls. Firefox hides its tabs, address bar, and browser toolbars through a dedicated profile stylesheet while keeping the normal desktop title bar and window controls, so its app windows remain movable, resizable, and closable.
 
 ## Build the MaxOS integration package
 
@@ -47,7 +47,7 @@ The launcher defaults to the confirmed MaxNet host. Use **MaxNet OS → Configur
 
 Use **Set Local OS PIN** from Start → System to run the standard `passwd` tool. This changes the local account password used at restart and lock screen; the system also uses it for `sudo`. It is not a separate short PIN credential and it is never checked by MaxNet. Keep at least one administrator account with a strong recovery password.
 
-Chromium/Chrome/Brave opens MaxNet in a clean app window with a separate persistent profile. Firefox uses a separate persistent profile in kiosk mode, hiding browser tabs and the address bar. Generic `xdg-open` fallback is limited to the full-site home shortcut so app launchers never unexpectedly open a tabbed browser.
+Chromium/Chrome/Brave opens MaxNet in a clean app window with a separate persistent profile. Firefox uses a separate persistent profile and hides browser controls with `userChrome.css` without enabling kiosk or fullscreen mode; the native title bar remains available to move, resize, minimize, and close windows. Generic `xdg-open` fallback is limited to the full-site home shortcut so app launchers never unexpectedly open a tabbed browser.
 
 ## MaxNet OS updates
 

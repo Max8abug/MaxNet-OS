@@ -14,3 +14,17 @@ mtime_ms = 1793050519314
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:7485171a-06be-4337-9fbc-830e25d8013b/679833be-591a-4dba-8a28-6a236cfd7a5e/ff011d81-1a20-46db-881c-c07bbc67b44a"
 storage_version_token = "1793050978887973"
 content_type = "image/png"
+
+[[outputs]]
+id = "QCX4mZ9D0IKakotH-5GO_"
+uri = "file://generated-artifacts/maxnet-remaster/maxos-0.4.10-cinnamon-64bit.iso.sha256"
+type = "unspecified"
+title = "MaxOS 0.4.10 ISO checksum"
+description = "SHA-256 checksum file for verifying the ISO download."
+logical_id = "f8c66482-9847-4cb0-b7dc-9504e3d161e4"
+content_hash = "sha256:fa16cf6f5efb61e8067ca53221d09ffe14948b0be1311f3fa6754e931e3e9fac"
+size = 134
+mtime_ms = 1793153123988
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:7485171a-06be-4337-9fbc-830e25d8013b/f8c66482-9847-4cb0-b7dc-9504e3d161e4/bccb30cb-1cc8-44c1-9f86-597695d108f9"
+storage_version_token = "1793153219785540"
+content_type = "application/octet-stream"
