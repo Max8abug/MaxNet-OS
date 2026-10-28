@@ -1,9 +1,9 @@
 $ErrorActionPreference = "Stop"
 
 $BaseUrl = "__MAXOS_DOWNLOAD_ORIGIN__"
-$OutputName = "MaxOS-0.4.13-cinnamon-64bit.iso"
+$OutputName = "MaxOS-0.4.15-cinnamon-64bit.iso"
 $ExpectedSize = 3088973824L
-$ExpectedSha256 = "037a12c762d2f83652c86d369153a4829d9da3796e0afa3611a311f3a9aab1fb"
+$ExpectedSha256 = "17c19453c7449427cefd65e2b4b00a0ee7b2ee8f819c28fba00d56ae80c85898"
 $OutputPath = Join-Path $PSScriptRoot $OutputName
 $PartialPath = "$OutputPath.partial"
 

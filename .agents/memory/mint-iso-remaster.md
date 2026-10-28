@@ -25,6 +25,12 @@ This workspace's `/tmp` is a 4 GiB tmpfs, too small for an unpacked Mint live ro
 
 **How to apply:** Extract only the required boot files, manifest, and compressed SquashFS from the ISO. Remove the compressed source from `/tmp` after unpacking, write the new SquashFS there, then delete the expanded rootfs before writing the final ISO.
 
+Older generated ISO files can exhaust the project quota before a new rootfs is fully unpacked. For the Mint 22.3 base used by MaxOS 0.4.15, the expanded filesystem is about 8.8 GB; a failed extraction can report `Disk quota exceeded` even when host `df` shows ample capacity.
+
+**Why:** Removing failed staging alone did not free enough space; pruning older local ISO copies was necessary to complete the remaster.
+
+**How to apply:** Check workspace usage before extraction. If old ISO outputs must be removed, ask first, retain the source ISO and a recent known-good build, and delete only the approved local copies.
+
 For MaxOS package validation, inspect the `.deb` payload and install rules first. Source tables can be build-time inputs that generate desktop entries rather than files installed in the live rootfs. Validate each configured feature's expected launcher and category, not a presumed source-file location or the total count of similarly named launchers.
 
 **Why:** A rootfs check can reject a valid package when it assumes a source table ships at runtime or overlooks separate home and theme launchers.

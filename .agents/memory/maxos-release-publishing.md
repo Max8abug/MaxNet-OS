@@ -7,7 +7,7 @@ For MaxOS, publish every update where the updater can download it and include th
 
 **Why:** The user asked for all future updates and ISOs to be available through the updater and GitHub releases, and offered moonbat.ddns.net as the fallback host.
 
-Replit asset cards reject files over 100 MiB, so they cannot deliver multi-gigabyte ISOs. The API preview can serve one complete ISO with byte-range resume, but its preview URL is not a durable public release host.
+GitHub documents a 2 GiB maximum per release asset, so it cannot hold this project's roughly 3 GB ISO as one file. Replit asset cards reject files over 100 MiB. The API preview can serve one complete ISO with byte-range resume, but its preview URL is not a durable public release host.
 
 **Why:** A 3 GB ISO exceeded the asset-card upload limit; the user still requires a single complete file without paid storage or split parts.
 
