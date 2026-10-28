@@ -114,6 +114,11 @@ while IFS= read -r -d '' file; do
   install -Dm644 "$file" "$STAGE/usr/share/icons/hicolor/scalable/apps/$(basename "$file")"
 done < <(find "$ROOT/share/icons" -type f -name '*.svg' -print0)
 
+for size in 24x24 48x48 96x96; do
+  icon="$ROOT/share/icons/hicolor/$size/apps/maxnet-os-start-0-4-11.png"
+  install -Dm644 "$icon" "$STAGE/usr/share/icons/hicolor/$size/apps/maxnet-os-start-0-4-11.png"
+done
+
 while IFS= read -r -d '' file; do
   install -Dm644 "$file" "$STAGE/usr/share/applications/$(basename "$file")"
 done < <(find "$ROOT/share/applications" -type f -name '*.desktop' -print0)

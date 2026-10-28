@@ -243,7 +243,7 @@ apply_start_menu_icon() {
     fi
   fi
 
-  local icon_name="maxnet-os-start"
+  local icon_name="maxnet-os-start-0-4-11"
   local icon_sync
   if command -v maxnet-os-sync-logo >/dev/null 2>&1; then
     icon_sync="$(command -v maxnet-os-sync-logo)"
@@ -254,7 +254,7 @@ apply_start_menu_icon() {
   fi
   if [[ -n "$icon_sync" ]]; then
     icon_name="$("$icon_sync" "$base_url" "$THEME_ID" 2>/dev/null || printf '%s' "$icon_name")"
-    [[ -n "$icon_name" ]] || icon_name="maxnet-os-start"
+    [[ -n "$icon_name" ]] || icon_name="maxnet-os-start-0-4-11"
   fi
 
   if gsettings writable org.cinnamon app-menu-icon-name >/dev/null 2>&1; then
