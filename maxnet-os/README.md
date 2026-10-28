@@ -28,7 +28,7 @@ Synced app availability controls MaxOS's launcher visibility, not site authoriza
 
 The **Sign in to MaxNet** launcher uses the normal MaxNet account dialog and keeps its session in a separate persistent browser profile. The local OS login PIN/password is never sent to MaxNet or synced; it is managed by Linux Mint, and the same local credential is also used for `sudo`.
 
-App launch supports sign-in, Chatroom, Forums, Direct Messages, Network, Eaglercraft, and the other MaxNet apps listed in the menu. Each feature launcher opens the matching MaxNet component without the website's desktop, taskbar, or navigation shell. Chromium/Chrome/Brave uses a native app window without browser controls; Firefox shows the same app-only page with its browser controls.
+App launch supports sign-in, Chatroom, Forums, Direct Messages, Network, Eaglercraft, and the other MaxNet apps listed in the menu. Each feature launcher opens the matching MaxNet component without the website's desktop, taskbar, or navigation shell. Chromium/Chrome/Brave uses a native app window without browser controls; Firefox uses full-screen kiosk mode to hide tabs and the address bar.
 
 ## Build the MaxOS integration package
 
@@ -36,14 +36,14 @@ On Linux Mint or Debian with `dpkg-deb` installed:
 
 ```bash
 ./maxnet-os/package/build-deb.sh
-sudo apt install ./maxnet-os/dist/maxnet-os_0.4.7_$(dpkg --print-architecture).deb
+sudo apt install ./maxnet-os/dist/maxnet-os_0.4.8_$(dpkg --print-architecture).deb
 ```
 
 The launcher defaults to the confirmed MaxNet host. Use **MaxNet OS → Configure** (or run `maxnet-os configure`) to change it. A per-user override is stored under `~/.config/maxnet-os/settings.conf`; the chosen theme is stored separately in `~/.config/maxnet-os/theme`. This package never stores a MaxNet password or session token.
 
 Use **Set Local OS PIN** from Start → System to run the standard `passwd` tool. This changes the local account password used at restart and lock screen; the system also uses it for `sudo`. It is not a separate short PIN credential and it is never checked by MaxNet. Keep at least one administrator account with a strong recovery password.
 
-Chromium/Chrome/Brave opens MaxNet in a clean app window with a separate persistent profile. Firefox and the system browser are supported as fallbacks; those may show normal browser controls, but the MaxNet page still presents only the selected app.
+Chromium/Chrome/Brave opens MaxNet in a clean app window with a separate persistent profile. Firefox uses a separate persistent profile in kiosk mode, hiding browser tabs and the address bar. Generic `xdg-open` fallback is limited to the full-site home shortcut so app launchers never unexpectedly open a tabbed browser.
 
 ## MaxNet OS updates
 
