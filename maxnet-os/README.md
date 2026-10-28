@@ -22,7 +22,7 @@ All 22 MaxNet feature launchers appear together in the **MaxNet** section in Sta
 
 ## First-run welcome intro
 
-On the first Cinnamon login after installation, MaxOS plays the bundled MaxNet intro video full-screen before showing the sign-in and theme setup prompts. The video is stored locally, so it also plays when the MaxNet server is offline. Press **Q** or **Esc** to skip; completing or skipping the video continues normal setup. It does not replay after the first-run setup marker is created.
+On the first Cinnamon login after installation, MaxOS plays the bundled MaxNet intro video full-screen before showing the sign-in and theme setup prompts. The video is stored locally, so it also plays when the MaxNet server is offline. MaxOS uses `mpv` when available, then falls back to Celluloid on the Mint live system; the fallback closes after the six-second clip. Press **Q** or **Esc** to skip. It does not replay after the first-run setup marker is created.
 
 ## MaxNet account settings during setup
 
@@ -32,7 +32,7 @@ Synced app availability controls MaxOS's launcher visibility, not site authoriza
 
 The **Sign in to MaxNet** launcher uses the normal MaxNet account dialog and keeps its session in a separate persistent browser profile. The local OS login PIN/password is never sent to MaxNet or synced; it is managed by Linux Mint, and the same local credential is also used for `sudo`.
 
-App launch supports sign-in, Chatroom, Forums, Direct Messages, Network, Eaglercraft, and the other MaxNet apps listed in the menu. Each feature launcher opens the matching MaxNet component without the website's desktop, taskbar, or navigation shell. Chromium/Chrome/Brave uses a native app window without browser controls; Firefox uses full-screen kiosk mode to hide tabs and the address bar.
+App launch supports sign-in, Chatroom, Forums, Direct Messages, Network, Eaglercraft, and the other MaxNet apps listed in the menu. Each feature launcher opens the matching MaxNet component without the website's desktop, taskbar, or navigation shell. Chromium/Chrome/Brave uses a native app window without browser controls; Firefox uses kiosk mode to hide tabs and the address bar. Firefox kiosk windows are full-screen.
 
 ## Build the MaxOS integration package
 
