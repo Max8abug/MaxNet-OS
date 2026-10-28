@@ -12,6 +12,17 @@ fail() {
   exit 1
 }
 
+start_icon_name="maxnet-os-start-0-4-11"
+fallback_icon_name="$(python3 "$repo_root/maxnet-os/bin/maxnet-os-sync-logo")"
+[[ "$fallback_icon_name" == "$start_icon_name" ]] \
+  || fail "Offline Start icon fallback was '$fallback_icon_name'"
+for icon_size in 24x24 48x48 96x96; do
+  icon_path="$repo_root/maxnet-os/share/icons/hicolor/$icon_size/apps/$start_icon_name.png"
+  [[ -s "$icon_path" ]] || fail "Missing $icon_size Start icon asset"
+  file "$icon_path" | grep -Fq 'PNG image data' \
+    || fail "Start icon at $icon_size is not a PNG"
+done
+
 contains_arg() {
   local expected="$1"
   shift
@@ -59,6 +70,13 @@ printf '%s\0' "$@" > "${MAXOS_TEST_MPV_ARGS:?}"
 MOCK
 chmod +x "$tmp_dir/mock-mpv"
 
+cat > "$tmp_dir/mock-celluloid" <<'MOCK'
+#!/bin/sh
+printf 'celluloid-intro\n' >> "${MAXOS_TEST_EVENTS:?}"
+printf '%s\0' "$@" > "${MAXOS_TEST_CELLULOID_ARGS:?}"
+MOCK
+chmod +x "$tmp_dir/mock-celluloid"
+
 cat > "$tmp_dir/mock-zenity" <<'MOCK'
 #!/bin/sh
 case "$1" in
@@ -82,6 +100,10 @@ ln -s "$tmp_dir/mock-xdg-open" "$no_browser_path/xdg-open"
 intro_path="$(make_test_path intro "")"
 ln -s "$tmp_dir/mock-mpv" "$intro_path/mpv"
 ln -s "$tmp_dir/mock-zenity" "$intro_path/zenity"
+celluloid_path="$(make_test_path intro-celluloid "")"
+ln -s "$tmp_dir/mock-celluloid" "$celluloid_path/celluloid"
+ln -s "$(command -v timeout)" "$celluloid_path/timeout"
+ln -s "$tmp_dir/mock-zenity" "$celluloid_path/zenity"
 
 features=()
 while IFS='|' read -r feature _rest; do
@@ -204,6 +226,25 @@ contains_arg "--fullscreen" "${intro_player_args[@]}" \
 [[ -e "$tmp_dir/config-first-run/maxnet-os/setup-prompt-complete" ]] \
   || fail "First-run setup did not complete after the intro"
 
+celluloid_events="$tmp_dir/celluloid-events"
+celluloid_args="$tmp_dir/celluloid-args"
+MAXOS_TEST_EVENTS="$celluloid_events" \
+  MAXOS_TEST_CELLULOID_ARGS="$celluloid_args" \
+  MAXNET_OS_INTRO_VIDEO="$intro_video" \
+  XDG_CONFIG_HOME="$tmp_dir/config-celluloid-first-run" \
+  XDG_DATA_HOME="$tmp_dir/data-celluloid-first-run" \
+  PATH="$celluloid_path" \
+  "$BASH" "$launcher" --first-run
+mapfile -t celluloid_sequence < "$celluloid_events"
+[[ "${celluloid_sequence[0]:-}" == "celluloid-intro" &&
+   "${celluloid_sequence[1]:-}" == "setup-prompt" ]] \
+  || fail "Celluloid fallback did not play before the setup prompt"
+mapfile -d '' -t celluloid_player_args < "$celluloid_args"
+contains_arg "--mpv-fullscreen=yes" "${celluloid_player_args[@]}" \
+  || fail "Celluloid fallback was not launched full-screen"
+contains_arg "$intro_video" "${celluloid_player_args[@]}" \
+  || fail "Celluloid fallback did not receive the intro video"
+
 : > "$intro_events"
 rm -f "$intro_args"
 MAXOS_TEST_EVENTS="$intro_events" \
@@ -220,4 +261,4 @@ fi
 printf 'PASS: %d MaxNet menu launchers plus Home work in Chromium app mode and Firefox kiosk mode.\n' \
   "${#features[@]}"
 printf 'PASS: unknown features and unsupported browsers fail safely.\n'
-printf 'PASS: first-run intro plays before setup once, then stays skipped.\n'
+printf 'PASS: first-run intro uses mpv or Celluloid before setup, once only.\n'

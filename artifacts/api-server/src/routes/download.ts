@@ -15,13 +15,15 @@ const workspaceRoot = resolve(
   process.cwd(),
   "../../",
 );
-const isoDownloadName = "maxos-0.4.6-cinnamon-64bit.iso";
+const isoFileName = "maxos-0.4.10-cinnamon-64bit.iso";
+const isoDownloadName = "MaxOS-0.4.10-cinnamon-64bit.iso";
 const isoPath = resolve(
   workspaceRoot,
   "generated-artifacts",
   "maxnet-remaster",
-  isoDownloadName,
+  isoFileName,
 );
+const checksumPath = `${isoPath}.sha256`;
 const downloaderScriptPath = resolve(
   workspaceRoot,
   "artifacts",
@@ -38,7 +40,6 @@ const shellDownloaderScriptPath = resolve(
   "routes",
   "download-maxos.sh",
 );
-const chunkSize = 256 * 1024 * 1024;
 const minimumIsoSize = 2_500_000_000;
 
 const getIsoStat = async (res: Response) => {
@@ -68,7 +69,35 @@ const ensureDevelopmentDownload = (res: Response) => {
   return true;
 };
 
-const downloadIso = async (_req: Request, res: Response, next: NextFunction) => {
+const streamIso = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+  start: number,
+  end: number,
+) => {
+  if (req.method === "HEAD") {
+    res.end();
+    return;
+  }
+
+  const stream = createReadStream(isoPath, { start, end });
+  stream.on("error", (error) => {
+    if (res.headersSent) {
+      res.destroy(error);
+    } else {
+      next(error);
+    }
+  });
+  res.on("close", () => {
+    if (!res.writableEnded) {
+      stream.destroy();
+    }
+  });
+  stream.pipe(res);
+};
+
+const downloadIso = async (req: Request, res: Response, next: NextFunction) => {
   if (!ensureDevelopmentDownload(res)) {
     return;
   }
@@ -79,13 +108,62 @@ const downloadIso = async (_req: Request, res: Response, next: NextFunction) => 
       return;
     }
 
-    res.setHeader("Content-Length", String(iso.size));
+    res.setHeader("Accept-Ranges", "bytes");
     res.setHeader("Content-Type", "application/octet-stream");
-    res.download(isoPath, isoDownloadName, (error) => {
-      if (error && !res.headersSent) {
-        next(error);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${isoDownloadName}"`,
+    );
+
+    const rangeHeader = req.get("range");
+    if (!rangeHeader) {
+      res.status(200);
+      res.setHeader("Content-Length", String(iso.size));
+      streamIso(req, res, next, 0, iso.size - 1);
+      return;
+    }
+
+    const match = /^bytes=(\d*)-(\d*)$/.exec(rangeHeader.trim());
+    if (!match || (!match[1] && !match[2])) {
+      res.setHeader("Content-Range", `bytes */${iso.size}`);
+      res.status(416).end();
+      return;
+    }
+
+    let start: number;
+    let end: number;
+    if (!match[1]) {
+      const suffixLength = Number(match[2]);
+      if (!Number.isSafeInteger(suffixLength) || suffixLength <= 0) {
+        res.setHeader("Content-Range", `bytes */${iso.size}`);
+        res.status(416).end();
+        return;
       }
-    });
+      start = Math.max(iso.size - suffixLength, 0);
+      end = iso.size - 1;
+    } else {
+      start = Number(match[1]);
+      end = match[2] ? Number(match[2]) : iso.size - 1;
+    }
+
+    if (
+      !Number.isSafeInteger(start) ||
+      !Number.isSafeInteger(end) ||
+      start < 0 ||
+      end < start ||
+      start >= iso.size
+    ) {
+      res.setHeader("Content-Range", `bytes */${iso.size}`);
+      res.status(416).end();
+      return;
+    }
+
+    end = Math.min(end, iso.size - 1);
+    const length = end - start + 1;
+    res.status(206);
+    res.setHeader("Content-Range", `bytes ${start}-${end}/${iso.size}`);
+    res.setHeader("Content-Length", String(length));
+    streamIso(req, res, next, start, end);
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       res.status(503).json({ error: "The MaxOS ISO has not been built yet." });
@@ -95,7 +173,7 @@ const downloadIso = async (_req: Request, res: Response, next: NextFunction) => 
   }
 };
 
-const downloadIsoChunk = async (
+const downloadIsoChecksum = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -104,51 +182,24 @@ const downloadIsoChunk = async (
     return;
   }
 
-  const partNumber = Number(req.params.part);
-  if (!Number.isInteger(partNumber) || partNumber < 1) {
-    res.status(400).json({ error: "Invalid MaxOS ISO chunk number." });
-    return;
-  }
-
   try {
     const iso = await getIsoStat(res);
     if (!iso) {
       return;
     }
-
-    const totalParts = Math.ceil(iso.size / chunkSize);
-    if (partNumber > totalParts) {
-      res.status(404).json({ error: "MaxOS ISO chunk not found." });
+    const checksumText = await readFile(checksumPath, "utf8");
+    const checksum = checksumText.trim().split(/\s+/)[0];
+    if (!/^[a-f0-9]{64}$/i.test(checksum ?? "")) {
+      res.status(503).json({ error: "The MaxOS ISO checksum is not ready." });
       return;
     }
 
-    const start = (partNumber - 1) * chunkSize;
-    const end = Math.min(start + chunkSize - 1, iso.size - 1);
-    const length = end - start + 1;
-    const partName = `${isoDownloadName}.part${String(partNumber).padStart(2, "0")}`;
-
-    res.status(206);
-    res.setHeader("Accept-Ranges", "bytes");
-    res.setHeader("Content-Range", `bytes ${start}-${end}/${iso.size}`);
-    res.setHeader("Content-Length", String(length));
-    res.setHeader("Content-Type", "application/octet-stream");
-    res.setHeader("Content-Disposition", `attachment; filename="${partName}"`);
-
-    if (req.method === "HEAD") {
-      res.end();
-      return;
-    }
-
-    const stream = createReadStream(isoPath, { start, end });
-    stream.on("error", (error) => {
-      if (res.headersSent) {
-        res.destroy(error);
-      } else {
-        next(error);
-      }
-    });
-    stream.pipe(res);
+    res.type("text/plain").send(`${checksum}  ${isoDownloadName}\n`);
   } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      res.status(503).json({ error: "The MaxOS ISO checksum is not ready." });
+      return;
+    }
     next(error);
   }
 };
@@ -185,8 +236,8 @@ const downloadShellHelper = (req: Request, res: Response, next: NextFunction) =>
   downloadHelperScript(req, res, next, shellDownloaderScriptPath, "download-maxos.sh");
 
 router.get("/download/maxnet-os.iso", downloadIso);
-router.get(`/download/${isoDownloadName}`, downloadIso);
-router.get("/download/maxnet-os.part/:part", downloadIsoChunk);
+router.get(`/download/${isoFileName}`, downloadIso);
+router.get("/download/maxnet-os.iso.sha256", downloadIsoChecksum);
 router.get("/download/download-maxos.ps1", downloadPowerShellHelper);
 router.get("/download/download-maxos.sh", downloadShellHelper);
 

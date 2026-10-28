@@ -2,20 +2,12 @@
 set -euo pipefail
 
 BASE_URL="__MAXOS_DOWNLOAD_ORIGIN__"
-OUTPUT_NAME="MaxOS-0.4.6-cinnamon-64bit.iso"
+OUTPUT_NAME="MaxOS-0.4.10-cinnamon-64bit.iso"
 EXPECTED_SIZE=3088973824
-EXPECTED_SHA256="ebead706a9a41c5c161ceacb37d076a4fc4e955b03a0c4119313fc18a6e1b1a9"
-CHUNK_SIZE=268435456
-CHUNK_COUNT=$(((EXPECTED_SIZE + CHUNK_SIZE - 1) / CHUNK_SIZE))
+EXPECTED_SHA256="1b51c82649cb9533fc7a8beb9ca28aeaf26679c6f8bb027eb79b15392d53a875"
 OUTPUT_DIR="${OUTPUT_DIR:-$PWD}"
 OUTPUT_PATH="$OUTPUT_DIR/$OUTPUT_NAME"
 PARTIAL_PATH="$OUTPUT_PATH.partial"
-TEMP_DIR="$(mktemp -d)"
-
-cleanup() {
-  rm -rf -- "$TEMP_DIR"
-}
-trap cleanup EXIT
 
 if [[ -e "$OUTPUT_PATH" ]]; then
   echo "Destination already exists: $OUTPUT_PATH" >&2
@@ -28,50 +20,28 @@ if ! command -v curl >/dev/null 2>&1; then
   exit 1
 fi
 
-rm -f -- "$PARTIAL_PATH"
-: > "$PARTIAL_PATH"
-
-for ((part = 1; part <= CHUNK_COUNT; part++)); do
-  start=$(((part - 1) * CHUNK_SIZE))
-  expected_part_size=$CHUNK_SIZE
-  remaining=$((EXPECTED_SIZE - start))
-  if ((remaining < CHUNK_SIZE)); then
-    expected_part_size=$remaining
-  fi
-
-  part_path="$TEMP_DIR/maxos-part-$part.bin"
-  part_url="$BASE_URL/api/download/maxnet-os.part/$part"
-  downloaded=0
-
-  echo "Downloading chunk $part of $CHUNK_COUNT..."
-  for attempt in 1 2 3 4 5 6; do
-    rm -f -- "$part_path"
-    if curl --fail --silent --show-error --location --output "$part_path" "$part_url"; then
-      actual_part_size="$(stat -c '%s' -- "$part_path")"
-      if [[ "$actual_part_size" == "$expected_part_size" ]]; then
-        downloaded=1
-        break
-      fi
-    fi
-
-    if ((attempt < 6)); then
-      echo "Chunk $part failed on attempt $attempt; retrying..." >&2
-      sleep 2
-    fi
-  done
-
-  if ((downloaded == 0)); then
-    echo "Could not download chunk $part after 6 attempts." >&2
-    echo "Rerun this script to restart the download." >&2
+mkdir -p -- "$OUTPUT_DIR"
+actual_size=0
+if [[ -e "$PARTIAL_PATH" ]]; then
+  actual_size="$(stat -c '%s' -- "$PARTIAL_PATH")"
+  if ((actual_size > EXPECTED_SIZE)); then
+    echo "Partial file is larger than the expected ISO; move it aside before retrying." >&2
     exit 1
   fi
+fi
 
-  cat -- "$part_path" >> "$PARTIAL_PATH"
-done
+if ((actual_size < EXPECTED_SIZE)); then
+  echo "Downloading the full ISO to $PARTIAL_PATH (resumes if interrupted)..."
+  if ! curl --fail --location --retry 5 --retry-all-errors --continue-at - \
+    --output "$PARTIAL_PATH" --progress-bar "$BASE_URL/api/download/maxnet-os.iso"; then
+    echo "Download interrupted. Keep the .partial file and rerun this script to resume." >&2
+    exit 1
+  fi
+fi
 
 actual_size="$(stat -c '%s' -- "$PARTIAL_PATH")"
 if [[ "$actual_size" != "$EXPECTED_SIZE" ]]; then
-  echo "Assembled ISO has $actual_size bytes; expected $EXPECTED_SIZE." >&2
+  echo "Downloaded ISO has $actual_size bytes; expected $EXPECTED_SIZE." >&2
   echo "The partial file was kept for diagnosis." >&2
   exit 1
 fi

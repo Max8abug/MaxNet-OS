@@ -1,11 +1,9 @@
 $ErrorActionPreference = "Stop"
 
 $BaseUrl = "__MAXOS_DOWNLOAD_ORIGIN__"
-$OutputName = "MaxOS-0.4.6-cinnamon-64bit.iso"
+$OutputName = "MaxOS-0.4.10-cinnamon-64bit.iso"
 $ExpectedSize = 3088973824L
-$ExpectedSha256 = "ebead706a9a41c5c161ceacb37d076a4fc4e955b03a0c4119313fc18a6e1b1a9"
-$ChunkSize = 256MB
-$ChunkCount = [int][Math]::Ceiling($ExpectedSize / $ChunkSize)
+$ExpectedSha256 = "1b51c82649cb9533fc7a8beb9ca28aeaf26679c6f8bb027eb79b15392d53a875"
 $OutputPath = Join-Path $PSScriptRoot $OutputName
 $PartialPath = "$OutputPath.partial"
 
@@ -17,77 +15,27 @@ if (-not (Get-Command curl.exe -ErrorAction SilentlyContinue)) {
     throw "curl.exe was not found. Use a current Windows version with curl included."
 }
 
+$actualSize = 0L
 if (Test-Path -LiteralPath $PartialPath) {
-    Remove-Item -LiteralPath $PartialPath -Force
-}
-
-$OutputStream = [System.IO.File]::Open(
-    $PartialPath,
-    [System.IO.FileMode]::CreateNew,
-    [System.IO.FileAccess]::Write,
-    [System.IO.FileShare]::None
-)
-
-try {
-    for ($part = 1; $part -le $ChunkCount; $part++) {
-        $start = [long](($part - 1) * $ChunkSize)
-        $expectedPartSize = [Math]::Min([long]$ChunkSize, $ExpectedSize - $start)
-        $partPath = Join-Path $env:TEMP "maxos-0.4.6-part-$PID-$part.bin"
-        $partUrl = "$BaseUrl/api/download/maxnet-os.part/$part"
-
-        Write-Host "Downloading chunk $part of $ChunkCount..."
-        try {
-            $downloaded = $false
-            for ($attempt = 1; $attempt -le 6; $attempt++) {
-                if (Test-Path -LiteralPath $partPath) {
-                    Remove-Item -LiteralPath $partPath -Force
-                }
-
-                & curl.exe --fail --silent --show-error --location `
-                    --output $partPath $partUrl
-                $curlExitCode = $LASTEXITCODE
-
-                if ($curlExitCode -eq 0 -and (Test-Path -LiteralPath $partPath)) {
-                    $actualPartSize = (Get-Item -LiteralPath $partPath).Length
-                    if ($actualPartSize -eq $expectedPartSize) {
-                        $downloaded = $true
-                        break
-                    }
-                }
-
-                if ($attempt -lt 6) {
-                    Write-Warning "Chunk $part failed on attempt $attempt; retrying."
-                    Start-Sleep -Seconds 2
-                }
-            }
-
-            if (-not $downloaded) {
-                throw "Could not download chunk $part after 6 attempts."
-            }
-
-            $PartStream = [System.IO.File]::OpenRead($partPath)
-            try {
-                $PartStream.CopyTo($OutputStream)
-                $OutputStream.Flush()
-            }
-            finally {
-                $PartStream.Dispose()
-            }
-        }
-        finally {
-            if (Test-Path -LiteralPath $partPath) {
-                Remove-Item -LiteralPath $partPath -Force
-            }
-        }
+    $actualSize = (Get-Item -LiteralPath $PartialPath).Length
+    if ($actualSize -gt $ExpectedSize) {
+        throw "The partial file is larger than the expected ISO. Move it aside before retrying."
     }
 }
-finally {
-    $OutputStream.Dispose()
+
+if ($actualSize -lt $ExpectedSize) {
+    Write-Host "Downloading the full ISO to $PartialPath (resumes if interrupted)..."
+    & curl.exe --fail --location --retry 5 --retry-all-errors --continue-at - `
+        --output $PartialPath --progress-bar "$BaseUrl/api/download/maxnet-os.iso"
+    $curlExitCode = $LASTEXITCODE
+    if ($curlExitCode -ne 0) {
+        throw "Download interrupted. Keep the .partial file and rerun this script to resume."
+    }
 }
 
 $actualSize = (Get-Item -LiteralPath $PartialPath).Length
 if ($actualSize -ne $ExpectedSize) {
-    throw "The assembled ISO has $actualSize bytes; expected $ExpectedSize. The partial file was kept for diagnosis."
+    throw "The downloaded ISO has $actualSize bytes; expected $ExpectedSize. The partial file was kept for diagnosis."
 }
 
 $actualSha256 = (Get-FileHash -LiteralPath $PartialPath -Algorithm SHA256).Hash.ToLowerInvariant()

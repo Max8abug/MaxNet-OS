@@ -14,7 +14,7 @@ The OS theme chooser includes the same theme IDs as MaxNet:
 - Gold picture frame
 - Silver picture frame
 
-The theme IDs and names match MaxNet's `THEME_OPTIONS`. Each desktop theme includes coordinated Cinnamon taskbar/menu styling, native Muffin window decorations, GTK 3/4 titlebars and controls, and opaque content surfaces. The panel Start button uses the logo configured in MaxNet site settings when available and keeps a cached copy for offline use. If the logo changes, MaxOS refreshes the panel branding without requiring a full logout. Vista glass is rendered as an opaque, glossy frame instead of a see-through window. Choose **MaxOS Themes** from Start → System, or run `maxnet-os --choose-theme`. If account sync is skipped, a first-login chooser offers a local theme. The selected theme is passed to MaxNet when a launcher opens.
+The theme IDs and names match MaxNet's `THEME_OPTIONS`. Each desktop theme includes coordinated Cinnamon taskbar/menu styling, native Muffin window decorations, GTK 3/4 titlebars and controls, and opaque content surfaces. The Start button uses the supplied MaxOS logo by default, uses the logo configured in MaxNet site settings when available, and keeps that site logo cached for offline use. If the logo changes, MaxOS refreshes the panel branding without requiring a full logout. Vista glass is rendered as an opaque, glossy frame instead of a see-through window. Choose **MaxOS Themes** from Start → System, or run `maxnet-os --choose-theme`. If account sync is skipped, a first-login chooser offers a local theme. The selected theme is passed to MaxNet when a launcher opens.
 
 ## MaxNet applications in the MaxOS Start menu
 
@@ -22,7 +22,7 @@ All 22 MaxNet feature launchers appear together in the **MaxNet** section in Sta
 
 ## First-run welcome intro
 
-On the first Cinnamon login after installation, MaxOS plays the bundled MaxNet intro video full-screen before showing the sign-in and theme setup prompts. The video is stored locally, so it also plays when the MaxNet server is offline. Press **Q** or **Esc** to skip; completing or skipping the video continues normal setup. It does not replay after the first-run setup marker is created.
+On the first Cinnamon login after installation, MaxOS plays the bundled MaxNet intro video full-screen before showing the sign-in and theme setup prompts. The video is stored locally, so it also plays when the MaxNet server is offline. MaxOS uses `mpv` when available, then falls back to Celluloid on the Mint live system; the fallback closes after the six-second clip. Press **Q** or **Esc** to skip. It does not replay after the first-run setup marker is created.
 
 ## MaxNet account settings during setup
 
