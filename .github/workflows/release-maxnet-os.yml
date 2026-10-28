@@ -39,7 +39,8 @@ jobs:
           ./maxnet-os/package/build-deb.sh
           package="maxnet-os/dist/maxnet-os_$(tr -d '[:space:]' < maxnet-os/VERSION)_amd64.deb"
           test -s "$package"
-          dpkg-deb -f "$package" Depends | grep -Eq 'celluloid[[:space:]]*\\|[[:space:]]*mpv'
+          dependencies="$(dpkg-deb -f "$package" Depends)"
+          grep -Fq 'celluloid | mpv' <<< "$dependencies"
           package_listing="$(dpkg-deb -c "$package")"
           grep -Fq 'usr/share/maxnet-os/maxos-intro.mp4' <<< "$package_listing"
 
