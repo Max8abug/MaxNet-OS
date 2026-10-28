@@ -1,0 +1,163 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+launcher="$repo_root/maxnet-os/bin/maxnet-os"
+feature_table="$repo_root/maxnet-os/share/applications/features.tsv"
+tmp_dir="$(mktemp -d)"
+trap 'rm -rf "$tmp_dir"' EXIT
+
+fail() {
+  printf 'FAIL: %s\n' "$*" >&2
+  exit 1
+}
+
+contains_arg() {
+  local expected="$1"
+  shift
+  local actual
+  for actual in "$@"; do
+    [[ "$actual" == "$expected" ]] && return 0
+  done
+  return 1
+}
+
+make_test_path() {
+  local name="$1"
+  local browser="$2"
+  local path_dir="$tmp_dir/path-$name"
+  mkdir -p "$path_dir"
+
+  local tool target
+  for tool in python3 install date dirname; do
+    target="$(command -v "$tool")" || fail "Required test utility not found: $tool"
+    ln -s "$target" "$path_dir/$tool"
+  done
+
+  if [[ -n "$browser" ]]; then
+    ln -s "$tmp_dir/mock-browser" "$path_dir/$browser"
+  fi
+  printf '%s\n' "$path_dir"
+}
+
+cat > "$tmp_dir/mock-browser" <<'MOCK'
+#!/bin/sh
+printf '%s\0' "$@" > "${MAXOS_TEST_ARGS:?}"
+MOCK
+chmod +x "$tmp_dir/mock-browser"
+
+cat > "$tmp_dir/mock-xdg-open" <<'MOCK'
+#!/bin/sh
+printf '%s\0' "$@" > "${MAXOS_TEST_XDG_ARGS:?}"
+MOCK
+chmod +x "$tmp_dir/mock-xdg-open"
+
+chromium_path="$(make_test_path chromium chromium)"
+firefox_path="$(make_test_path firefox firefox)"
+no_browser_path="$(make_test_path no-browser "")"
+ln -s "$tmp_dir/mock-xdg-open" "$no_browser_path/xdg-open"
+
+features=()
+while IFS='|' read -r feature _rest; do
+  [[ -n "$feature" && "$feature" != \#* ]] || continue
+  features+=("$feature")
+done < "$feature_table"
+(( ${#features[@]} > 0 )) || fail "No launchers found in features.tsv"
+
+run_and_check() {
+  local browser="$1"
+  local path_dir="$2"
+  local feature="$3"
+  local result_file="$tmp_dir/args-$browser-$feature"
+  local config_dir="$tmp_dir/config-$browser-$feature"
+  local data_dir="$tmp_dir/data-$browser-$feature"
+  local -a args=()
+  local url
+
+  MAXOS_TEST_ARGS="$result_file" \
+    MAXNET_URL="https://moonbat.ddns.net" \
+    XDG_CONFIG_HOME="$config_dir" \
+    XDG_DATA_HOME="$data_dir" \
+    PATH="$path_dir" \
+    "$BASH" "$launcher" --feature "$feature" \
+    || fail "$browser failed to launch feature '$feature'"
+
+  [[ -s "$result_file" ]] || fail "$browser did not receive launch arguments for '$feature'"
+  mapfile -d '' -t args < "$result_file"
+
+  if [[ "$browser" == "chromium" ]]; then
+    [[ "${args[0]:-}" == --app=https://moonbat.ddns.net/* ]] \
+      || fail "Chromium did not receive an app-mode URL for '$feature'"
+    contains_arg "--new-window" "${args[@]}" || fail "Chromium omitted --new-window for '$feature'"
+    contains_arg "--user-data-dir=$data_dir/maxnet-os/chromium" "${args[@]}" \
+      || fail "Chromium did not use the persistent MaxOS profile for '$feature'"
+    if [[ "$feature" == "home" ]]; then
+      contains_arg "--class=maxnet-os" "${args[@]}" \
+        || fail "Chromium window class was wrong for Home"
+      contains_arg "--name=MaxOS" "${args[@]}" \
+        || fail "Chromium window title was wrong for Home"
+    else
+      contains_arg "--class=maxnet-$feature" "${args[@]}" \
+        || fail "Chromium window class was wrong for '$feature'"
+      contains_arg "--name=MaxNet - $feature" "${args[@]}" \
+        || fail "Chromium window title was wrong for '$feature'"
+    fi
+    url="${args[0]#--app=}"
+  else
+    [[ "${args[0]:-}" == "--kiosk" ]] || fail "Firefox omitted kiosk mode for '$feature'"
+    contains_arg "--new-window" "${args[@]}" || fail "Firefox omitted --new-window for '$feature'"
+    contains_arg "--profile" "${args[@]}" || fail "Firefox omitted its persistent profile for '$feature'"
+    [[ "${args[3]:-}" == "$data_dir/maxnet-os/firefox" ]] \
+      || fail "Firefox profile path was wrong for '$feature'"
+    url="${args[4]:-}"
+  fi
+
+  if [[ "$feature" == "home" ]]; then
+    [[ "$url" == "https://moonbat.ddns.net/?maxnet-os=1"* ]] \
+      || fail "Home URL was wrong for $browser"
+    [[ "$url" != *"maxnet-feature="* ]] || fail "Home unexpectedly had an app feature ID"
+  else
+    [[ "$url" == *"maxnet-feature=$feature"* ]] \
+      || fail "$browser URL omitted the '$feature' route"
+    [[ "$url" == *"maxnet-view=app"* ]] \
+      || fail "$browser URL omitted app-only mode for '$feature'"
+    [[ "$url" == *"maxnet-launch-id="* ]] \
+      || fail "$browser URL omitted the launch ID for '$feature'"
+  fi
+}
+
+for feature in "${features[@]}"; do
+  run_and_check chromium "$chromium_path" "$feature"
+  run_and_check firefox "$firefox_path" "$feature"
+done
+run_and_check chromium "$chromium_path" home
+run_and_check firefox "$firefox_path" home
+
+invalid_output="$tmp_dir/invalid-feature.out"
+if MAXNET_URL="https://moonbat.ddns.net" \
+  XDG_CONFIG_HOME="$tmp_dir/config-invalid" \
+  XDG_DATA_HOME="$tmp_dir/data-invalid" \
+  PATH="$chromium_path" \
+  "$BASH" "$launcher" --feature not-a-maxnet-app >"$invalid_output" 2>&1; then
+  fail "An unknown app feature unexpectedly launched"
+fi
+grep -Fq "Unknown MaxNet feature: not-a-maxnet-app" "$invalid_output" \
+  || fail "An unknown feature did not produce a useful error"
+
+no_browser_output="$tmp_dir/no-browser.out"
+if MAXOS_TEST_XDG_ARGS="$tmp_dir/xdg-args" \
+  MAXNET_URL="https://moonbat.ddns.net" \
+  XDG_CONFIG_HOME="$tmp_dir/config-no-browser" \
+  XDG_DATA_HOME="$tmp_dir/data-no-browser" \
+  PATH="$no_browser_path" \
+  "$BASH" "$launcher" --feature chat >"$no_browser_output" 2>&1; then
+  fail "A MaxNet app unexpectedly launched without Chromium or Firefox"
+fi
+[[ ! -e "$tmp_dir/xdg-args" ]] \
+  || fail "An app launcher fell back to a tabbed xdg-open browser"
+grep -Fq "without browser controls" "$no_browser_output" \
+  || fail "Missing-browser error did not explain the supported app browsers"
+
+printf 'PASS: %d MaxNet menu launchers plus Home work in Chromium app mode and Firefox kiosk mode.\n' \
+  "${#features[@]}"
+printf 'PASS: unknown features and unsupported browsers fail safely.\n'
