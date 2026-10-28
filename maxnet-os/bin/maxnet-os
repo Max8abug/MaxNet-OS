@@ -20,6 +20,7 @@ Usage:
   maxnet-os --sync-account
   maxnet-os --handle-sync URI
   maxnet-os --restore-system-theme
+  maxnet-os --refresh-start-menu
 
 Features: home, signin, chat, forum, dms, network, network-people,
           network-wiki, gallery, users, visits, guestbook, planner, news,
@@ -263,7 +264,7 @@ apply_start_menu_icon() {
     fi
   fi
 
-  local icon_name="maxnet-os-start-0-4-13"
+  local icon_name="maxnet-os-start"
   local icon_sync
   if command -v maxnet-os-sync-logo >/dev/null 2>&1; then
     icon_sync="$(command -v maxnet-os-sync-logo)"
@@ -274,7 +275,7 @@ apply_start_menu_icon() {
   fi
   if [[ -n "$icon_sync" ]]; then
     icon_name="$("$icon_sync" "$base_url" "$THEME_ID" 2>/dev/null || printf '%s' "$icon_name")"
-    [[ -n "$icon_name" ]] || icon_name="maxnet-os-start-0-4-13"
+    [[ -n "$icon_name" ]] || icon_name="maxnet-os-start"
   fi
 
   if gsettings writable org.cinnamon app-menu-icon-name >/dev/null 2>&1; then
@@ -308,6 +309,35 @@ show_update_error() {
     zenity --error --title="MaxOS Update Manager" --text="$message" || true
   else
     printf '%s\n' "$message" >&2
+  fi
+}
+
+prompt_restart_if_needed() {
+  local reboot_marker=""
+  for marker in /run/reboot-required /var/run/reboot-required; do
+    if [[ -e "$marker" ]]; then
+      reboot_marker="$marker"
+      break
+    fi
+  done
+
+  if [[ -z "$reboot_marker" ]]; then
+    zenity --info --title="MaxOS Updated" \
+      --text="MaxOS $remote_version was installed successfully. A computer restart is not required." || true
+    return 0
+  fi
+
+  if zenity --question --title="Restart Required" \
+    --ok-label="Restart now" --cancel-label="Later" \
+    --text="MaxOS $remote_version was installed successfully, and this system requires a restart to finish applying updates.\n\nRestart now?"; then
+    if command -v pkexec >/dev/null 2>&1 &&
+       pkexec systemctl reboot; then
+      return 0
+    fi
+    show_update_error "MaxOS $remote_version was installed successfully, but the restart could not be started. Save your work and restart from the system menu."
+  else
+    zenity --info --title="Restart Required" \
+      --text="MaxOS $remote_version was installed successfully. Restart the computer later to finish applying the pending system updates." || true
   fi
 }
 
@@ -465,8 +495,10 @@ PY
     return 1
   fi
   if pkexec apt-get install -y "$deb_file"; then
-    zenity --info --title="MaxOS Updated" \
-      --text="MaxOS $remote_version was installed successfully." || true
+    if command -v maxnet-os >/dev/null 2>&1; then
+      maxnet-os --refresh-start-menu || true
+    fi
+    prompt_restart_if_needed
   else
     show_update_error "The package installation did not complete. Check the authentication prompt and package manager output."
     return 1
@@ -959,6 +991,11 @@ while (($#)); do
     --updates)
       check_for_updates
       exit $?
+      ;;
+    --refresh-start-menu)
+      theme_slug
+      apply_start_menu_icon
+      exit 0
       ;;
     configure)
       configure_url

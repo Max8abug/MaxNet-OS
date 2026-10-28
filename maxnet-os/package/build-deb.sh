@@ -11,6 +11,7 @@ mkdir -p "$STAGE/usr/share/backgrounds" "$STAGE/usr/share/icons/hicolor/scalable
 
 install -Dm644 "$ROOT/package/DEBIAN/control" "$STAGE/DEBIAN/control"
 sed -i "s/^Version: .*/Version: $VERSION/" "$STAGE/DEBIAN/control"
+install -Dm755 "$ROOT/package/DEBIAN/postinst" "$STAGE/DEBIAN/postinst"
 
 install -Dm755 "$ROOT/bin/maxnet-os" "$STAGE/usr/bin/maxnet-os"
 install -Dm755 "$ROOT/bin/maxnet-os-sync-logo" "$STAGE/usr/bin/maxnet-os-sync-logo"
@@ -124,11 +125,8 @@ sed -e "s|@MAXNET_LOGO_DATA_URI@|$logo_data_uri|g" \
   "$ROOT/share/icons/maxnet.svg.in" \
   > "$STAGE/usr/share/icons/hicolor/scalable/apps/maxnet.svg"
 
-for size in 24x24 48x48 96x96; do
-  icon="$ROOT/share/icons/hicolor/$size/apps/maxnet-os-start-0-4-13.png"
-  install -Dm644 "$icon" \
-    "$STAGE/usr/share/icons/hicolor/$size/apps/maxnet-os-start-0-4-13.png"
-done
+install -Dm644 "$ROOT/share/branding/maxnet-user-logo.png" \
+  "$STAGE/usr/share/icons/hicolor/128x128/apps/maxnet-os-start.png"
 
 while IFS= read -r -d '' file; do
   install -Dm644 "$file" "$STAGE/usr/share/applications/$(basename "$file")"

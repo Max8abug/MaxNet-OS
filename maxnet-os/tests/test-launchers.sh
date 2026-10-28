@@ -12,16 +12,20 @@ fail() {
   exit 1
 }
 
-start_icon_name="maxnet-os-start-0-4-13"
-fallback_icon_name="$(python3 "$repo_root/maxnet-os/bin/maxnet-os-sync-logo")"
+start_icon_name="maxnet-os-start"
+fallback_icon_data="$tmp_dir/fallback-icon-data"
+fallback_icon_cache="$tmp_dir/fallback-icon-cache"
+fallback_icon_name="$(
+  XDG_DATA_HOME="$fallback_icon_data" \
+    XDG_CACHE_HOME="$fallback_icon_cache" \
+    python3 "$repo_root/maxnet-os/bin/maxnet-os-sync-logo"
+)"
 [[ "$fallback_icon_name" == "$start_icon_name" ]] \
   || fail "Offline Start icon fallback was '$fallback_icon_name'"
-for icon_size in 24x24 48x48 96x96; do
-  icon_path="$repo_root/maxnet-os/share/icons/hicolor/$icon_size/apps/$start_icon_name.png"
-  [[ -s "$icon_path" ]] || fail "Missing $icon_size Start icon asset"
-  file "$icon_path" | grep -Fq 'PNG image data' \
-    || fail "Start icon at $icon_size is not a PNG"
-done
+fallback_icon_path="$fallback_icon_data/icons/hicolor/128x128/apps/$start_icon_name.png"
+[[ -s "$fallback_icon_path" ]] || fail "Offline Start logo was not installed in the user icon theme"
+cmp -s "$repo_root/maxnet-os/share/branding/maxnet-user-logo.png" "$fallback_icon_path" \
+  || fail "Offline Start icon did not use the supplied MaxNet logo"
 
 contains_arg() {
   local expected="$1"
@@ -77,6 +81,36 @@ printf '%s\0' "$@" > "${MAXOS_TEST_CELLULOID_ARGS:?}"
 MOCK
 chmod +x "$tmp_dir/mock-celluloid"
 
+cat > "$tmp_dir/mock-gsettings" <<'MOCK'
+#!/bin/sh
+case "$1" in
+  writable) exit 0 ;;
+  get)
+    case "$3" in
+      app-menu-label) printf "'Menu'\n" ;;
+      app-menu-icon-name) printf "'start-here'\n" ;;
+      *) exit 1 ;;
+    esac
+    ;;
+  set)
+    printf '%s\t%s\n' "$3" "$4" >> "${MAXOS_TEST_GSETTINGS:?}"
+    ;;
+esac
+MOCK
+chmod +x "$tmp_dir/mock-gsettings"
+
+cat > "$tmp_dir/mock-icon-sync" <<'MOCK'
+#!/bin/sh
+printf 'maxnet-os-start\n'
+MOCK
+chmod +x "$tmp_dir/mock-icon-sync"
+
+cat > "$tmp_dir/mock-cinnamon" <<'MOCK'
+#!/bin/sh
+printf 'restarted\n' >> "${MAXOS_TEST_CINNAMON:?}"
+MOCK
+chmod +x "$tmp_dir/mock-cinnamon"
+
 cat > "$tmp_dir/mock-zenity" <<'MOCK'
 #!/bin/sh
 case "$1" in
@@ -104,6 +138,10 @@ celluloid_path="$(make_test_path intro-celluloid "")"
 ln -s "$tmp_dir/mock-celluloid" "$celluloid_path/celluloid"
 ln -s "$(command -v timeout)" "$celluloid_path/timeout"
 ln -s "$tmp_dir/mock-zenity" "$celluloid_path/zenity"
+start_menu_path="$(make_test_path start-menu "")"
+ln -s "$tmp_dir/mock-gsettings" "$start_menu_path/gsettings"
+ln -s "$tmp_dir/mock-icon-sync" "$start_menu_path/maxnet-os-sync-logo"
+ln -s "$tmp_dir/mock-cinnamon" "$start_menu_path/cinnamon"
 
 features=()
 while IFS='|' read -r feature _rest; do
@@ -200,6 +238,27 @@ for feature in "${features[@]}"; do
 done
 run_and_check chromium "$chromium_path" home
 run_and_check firefox "$firefox_path" home
+
+start_menu_settings="$tmp_dir/start-menu-settings"
+start_menu_refresh="$tmp_dir/start-menu-refresh"
+MAXOS_TEST_GSETTINGS="$start_menu_settings" \
+  MAXOS_TEST_CINNAMON="$start_menu_refresh" \
+  MAXNET_URL="https://moonbat.ddns.net" \
+  DISPLAY=:1 \
+  XDG_CONFIG_HOME="$tmp_dir/config-start-menu" \
+  XDG_DATA_HOME="$tmp_dir/data-start-menu" \
+  PATH="$start_menu_path" \
+  "$BASH" "$launcher" --refresh-start-menu \
+  || fail "Start menu branding refresh failed"
+grep -Fq $'app-menu-label\tStart' "$start_menu_settings" \
+  || fail "The Cinnamon Start button label was not updated"
+grep -Fq $'app-menu-icon-name\tmaxnet-os-start' "$start_menu_settings" \
+  || fail "The supplied MaxNet icon was not assigned to the Cinnamon Start button"
+for _ in {1..50}; do
+  [[ -s "$start_menu_refresh" ]] && break
+  sleep 0.02
+done
+[[ -s "$start_menu_refresh" ]] || fail "Cinnamon was not refreshed after Start branding changed"
 
 account_setup_args="$tmp_dir/account-setup-args"
 account_setup_data="$tmp_dir/data-account-setup"

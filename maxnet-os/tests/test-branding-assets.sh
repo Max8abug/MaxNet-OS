@@ -49,6 +49,10 @@ installed_logo = package / "usr/share/maxnet-os/maxnet-user-logo.png"
 if installed_logo.read_bytes() != logo:
     raise SystemExit("Packaged MaxNet logo asset does not match the repository source")
 
+fallback_icon = package / "usr/share/icons/hicolor/128x128/apps/maxnet-os-start.png"
+if fallback_icon.read_bytes() != logo:
+    raise SystemExit("Packaged Start-menu fallback icon does not match the supplied MaxNet logo")
+
 for relative in (
     "maxnet-os/share/icons/maxnet.svg.in",
     "maxnet-os/share/backgrounds/maxnet-os.svg.in",

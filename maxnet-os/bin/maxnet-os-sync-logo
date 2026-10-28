@@ -17,7 +17,7 @@ from urllib.error import URLError
 from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 
-FALLBACK = "maxnet-os-start-0-4-13"
+FALLBACK = "maxnet-os-start"
 MAX_RESPONSE_BYTES = 16 * 1024 * 1024
 MAX_LOGO_BYTES = 300_000
 FORMATS = {"png": "png", "jpeg": "jpg", "gif": "gif", "webp": "webp"}
@@ -37,6 +37,8 @@ def cached_icon_name() -> str:
     pointer = cache_home() / "maxnet-os" / "site-start-icon"
     try:
         name = pointer.read_text(encoding="ascii").strip()
+        if name == FALLBACK:
+            return name if (data_home() / "icons/hicolor/128x128/apps" / f"{name}.png").is_file() else FALLBACK
         if not ICON_NAME.fullmatch(name):
             return FALLBACK
         return name if any(
@@ -45,6 +47,43 @@ def cached_icon_name() -> str:
         ) else FALLBACK
     except OSError:
         return FALLBACK
+
+
+def refresh_icon_cache(icon_theme_dir: Path, theme_index: Path) -> None:
+    updater = shutil.which("gtk-update-icon-cache")
+    if updater and theme_index.is_file():
+        subprocess.run(
+            [updater, "-f", str(icon_theme_dir)],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+
+
+def install_fallback_icon() -> str:
+    source_candidates = (
+        Path("/usr/share/maxnet-os/maxnet-user-logo.png"),
+        Path(__file__).resolve().parent.parent / "share/branding/maxnet-user-logo.png",
+    )
+    source = next((path for path in source_candidates if path.is_file()), None)
+    if source is None:
+        return FALLBACK
+
+    icon_theme_dir = data_home() / "icons/hicolor"
+    icon_dir = icon_theme_dir / "128x128/apps"
+    icon_dir.mkdir(parents=True, exist_ok=True)
+    theme_index = icon_theme_dir / "index.theme"
+    system_index = Path("/usr/share/icons/hicolor/index.theme")
+    if not theme_index.exists() and system_index.is_file():
+        shutil.copyfile(system_index, theme_index)
+
+    destination = icon_dir / f"{FALLBACK}.png"
+    if not destination.is_file() or destination.read_bytes() != source.read_bytes():
+        temporary = destination.with_suffix(".png.tmp")
+        shutil.copyfile(source, temporary)
+        os.replace(temporary, destination)
+        refresh_icon_cache(icon_theme_dir, theme_index)
+    return FALLBACK
 
 
 def selected_logo(settings: dict, dark_theme: bool) -> str:
@@ -112,20 +151,13 @@ def save_icon(content: bytes, extension: str) -> str:
     temporary_pointer.write_text(icon_name + "\n", encoding="ascii")
     os.replace(temporary_pointer, pointer)
 
-    updater = shutil.which("gtk-update-icon-cache")
-    if updater and theme_index.is_file():
-        subprocess.run(
-            [updater, "-f", str(icon_theme_dir)],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            check=False,
-        )
+    refresh_icon_cache(icon_theme_dir, theme_index)
     return icon_name
 
 
 def main() -> int:
     if len(sys.argv) != 3:
-        print(FALLBACK)
+        print(install_fallback_icon())
         return 0
     base_url, theme_id = sys.argv[1], sys.argv[2]
     try:
@@ -133,9 +165,14 @@ def main() -> int:
         logo = parse_logo(selected_logo(settings, theme_id in {"classic-dark", "xp-dark", "vista-dark"}))
         if logo is None and theme_id in {"classic-dark", "xp-dark", "vista-dark"}:
             logo = parse_logo(settings.get("logoDataUrl", ""))
-        print(save_icon(*logo) if logo is not None else cached_icon_name())
+        if logo is not None:
+            print(save_icon(*logo))
+        else:
+            cached = cached_icon_name()
+            print(install_fallback_icon() if cached == FALLBACK else cached)
     except (OSError, ValueError, URLError, json.JSONDecodeError):
-        print(cached_icon_name())
+        cached = cached_icon_name()
+        print(install_fallback_icon() if cached == FALLBACK else cached)
     return 0
 
 
