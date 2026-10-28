@@ -139,7 +139,26 @@ choose_system_theme() {
   set_system_theme "$selected"
 }
 
+play_first_run_intro() {
+  local intro_video="${MAXNET_OS_INTRO_VIDEO:-/usr/share/maxnet-os/maxos-intro.mp4}"
+  [[ -r "$intro_video" ]] || return 0
+
+  if command -v mpv >/dev/null 2>&1; then
+    mpv --fullscreen --no-border --ontop --no-osc \
+      --cursor-autohide=always --force-window=immediate --keep-open=no \
+      "$intro_video" >/dev/null 2>&1 || true
+  elif command -v ffplay >/dev/null 2>&1; then
+    ffplay -fs -autoexit -hide_banner -loglevel error \
+      "$intro_video" >/dev/null 2>&1 || true
+  else
+    printf '%s\n' "No video player is available; continuing MaxOS setup without the intro." >&2
+  fi
+}
+
 first_run() {
+  if [[ ! -e "$setup_complete" ]]; then
+    play_first_run_intro
+  fi
   apply_start_menu_icon
   [[ -e "$setup_complete" ]] && {
     [[ -e "$theme_config" ]] || choose_system_theme
