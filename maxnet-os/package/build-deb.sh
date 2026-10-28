@@ -6,6 +6,8 @@ VERSION="$(tr -d '[:space:]' < "$ROOT/VERSION")"
 ARCH="$(dpkg --print-architecture)"
 STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT
+logo_data_uri="data:image/png;base64,$(base64 -w 0 "$ROOT/share/branding/maxnet-user-logo.png")"
+mkdir -p "$STAGE/usr/share/backgrounds" "$STAGE/usr/share/icons/hicolor/scalable/apps"
 
 install -Dm644 "$ROOT/package/DEBIAN/control" "$STAGE/DEBIAN/control"
 sed -i "s/^Version: .*/Version: $VERSION/" "$STAGE/DEBIAN/control"
@@ -13,10 +15,13 @@ sed -i "s/^Version: .*/Version: $VERSION/" "$STAGE/DEBIAN/control"
 install -Dm755 "$ROOT/bin/maxnet-os" "$STAGE/usr/bin/maxnet-os"
 install -Dm755 "$ROOT/bin/maxnet-os-sync-logo" "$STAGE/usr/bin/maxnet-os-sync-logo"
 install -Dm644 "$ROOT/VERSION" "$STAGE/usr/share/maxnet-os/VERSION"
+install -Dm644 "$ROOT/share/branding/maxnet-user-logo.png" \
+  "$STAGE/usr/share/maxnet-os/maxnet-user-logo.png"
 install -Dm644 "$ROOT/share/applications/features.tsv" \
   "$STAGE/usr/share/maxnet-os/features.tsv"
-install -Dm644 "$ROOT/share/backgrounds/maxnet-os.svg" \
-  "$STAGE/usr/share/backgrounds/maxnet-os.svg"
+sed -e "s|@MAXNET_LOGO_DATA_URI@|$logo_data_uri|g" \
+  "$ROOT/share/backgrounds/maxnet-os.svg.in" \
+  > "$STAGE/usr/share/backgrounds/maxnet-os.svg"
 install -Dm644 "$ROOT/share/videos/maxos-intro.mp4" \
   "$STAGE/usr/share/maxnet-os/maxos-intro.mp4"
 
@@ -74,6 +79,7 @@ EOF
     -e "s|@RADIUS@|$radius|g" \
     -e "s|@PANEL_BG@|$panel_bg|g" \
     -e "s|@BUTTON_BG@|$button_bg|g" \
+    -e "s|@MAXNET_LOGO_DATA_URI@|$logo_data_uri|g" \
     "$ROOT/share/themes/templates/wallpaper.svg.in" \
     > "$STAGE/usr/share/backgrounds/maxnet-os-$theme_id.svg"
 
@@ -114,10 +120,14 @@ while IFS= read -r -d '' file; do
   install -Dm644 "$file" "$STAGE/usr/share/icons/hicolor/scalable/apps/$(basename "$file")"
 done < <(find "$ROOT/share/icons" -type f -name '*.svg' -print0)
 
+sed -e "s|@MAXNET_LOGO_DATA_URI@|$logo_data_uri|g" \
+  "$ROOT/share/icons/maxnet.svg.in" \
+  > "$STAGE/usr/share/icons/hicolor/scalable/apps/maxnet.svg"
+
 for size in 24x24 48x48 96x96; do
-  icon="$ROOT/share/icons/hicolor/$size/apps/maxnet-os-start-0-4-11.png"
+  icon="$ROOT/share/icons/hicolor/$size/apps/maxnet-os-start-0-4-12.png"
   install -Dm644 "$icon" \
-    "$STAGE/usr/share/icons/hicolor/$size/apps/maxnet-os-start-0-4-11.png"
+    "$STAGE/usr/share/icons/hicolor/$size/apps/maxnet-os-start-0-4-12.png"
 done
 
 while IFS= read -r -d '' file; do

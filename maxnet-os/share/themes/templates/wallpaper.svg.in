@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1920" height="1080" viewBox="0 0 1920 1080">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="@BG@"/>
@@ -22,8 +22,8 @@
     <path d="M1000 120h920M1000 220h920M1000 320h920M1000 420h920M1000 520h920M1000 620h920M1000 720h920M1000 820h920M1000 920h920"/>
   </g>
   <g transform="translate(130 160)">
-    <rect width="96" height="96" rx="22" fill="@SURFACE@" stroke="@ACCENT@" stroke-opacity=".7" stroke-width="2"/>
-    <path d="M21 66V30h11l16 18 16-18h11v36H63V46L48 60 33 46v20z" fill="@ACCENT@"/>
-    <circle cx="73" cy="21" r="5" fill="@FG@"/>
+    <rect width="96" height="96" rx="22" fill="#000080" stroke="@ACCENT@" stroke-opacity=".9" stroke-width="2"/>
+    <image x="8" y="8" width="80" height="80" preserveAspectRatio="xMidYMid meet"
+      href="@MAXNET_LOGO_DATA_URI@" xlink:href="@MAXNET_LOGO_DATA_URI@"/>
   </g>
 </svg>

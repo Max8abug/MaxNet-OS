@@ -6,6 +6,10 @@ VERSION="${2:?Usage: brand-iso-tree.sh ISO_TREE VERSION}"
 PACKAGE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
+logo_data_uri="data:image/png;base64,$(base64 -w 0 "$PACKAGE_ROOT/share/branding/maxnet-user-logo.png")"
+sed -e "s|@MAXNET_LOGO_DATA_URI@|$logo_data_uri|g" \
+  "$PACKAGE_ROOT/share/branding/maxos-iso-splash.svg.in" \
+  > "$WORK/maxos-iso-splash.svg"
 
 python3 - "$ISO_TREE" "$VERSION" <<'PY'
 from pathlib import Path
@@ -94,7 +98,7 @@ render_splash() {
   local icon_x="$4"
   local icon_y="$5"
 
-  magick -background none "$PACKAGE_ROOT/share/branding/maxos-iso-splash.svg" \
+  magick -background none "$WORK/maxos-iso-splash.svg" \
     -resize "${dimensions}!" -alpha off -depth 8 -define png:color-type=2 \
     "$WORK/splash-base.png"
   magick "$PACKAGE_ROOT/share/branding/boot-icon.png" -trim +repage \

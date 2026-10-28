@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 64 64">
+  <rect x="3" y="3" width="58" height="58" rx="12" fill="#000080" stroke="#ff00ff" stroke-width="2"/>
+  <image x="6" y="6" width="52" height="52" preserveAspectRatio="xMidYMid meet"
+    href="@MAXNET_LOGO_DATA_URI@" xlink:href="@MAXNET_LOGO_DATA_URI@"/>
+</svg>

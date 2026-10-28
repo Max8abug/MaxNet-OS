@@ -12,7 +12,7 @@ fail() {
   exit 1
 }
 
-start_icon_name="maxnet-os-start-0-4-11"
+start_icon_name="maxnet-os-start-0-4-12"
 fallback_icon_name="$(python3 "$repo_root/maxnet-os/bin/maxnet-os-sync-logo")"
 [[ "$fallback_icon_name" == "$start_icon_name" ]] \
   || fail "Offline Start icon fallback was '$fallback_icon_name'"

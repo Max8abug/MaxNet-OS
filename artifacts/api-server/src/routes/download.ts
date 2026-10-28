@@ -15,8 +15,8 @@ const workspaceRoot = resolve(
   process.cwd(),
   "../../",
 );
-const isoFileName = "maxos-0.4.10-cinnamon-64bit.iso";
-const isoDownloadName = "MaxOS-0.4.10-cinnamon-64bit.iso";
+const isoFileName = "maxos-0.4.12-cinnamon-64bit.iso";
+const isoDownloadName = "MaxOS-0.4.12-cinnamon-64bit.iso";
 const isoPath = resolve(
   workspaceRoot,
   "generated-artifacts",
