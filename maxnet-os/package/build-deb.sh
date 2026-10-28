@@ -125,9 +125,9 @@ sed -e "s|@MAXNET_LOGO_DATA_URI@|$logo_data_uri|g" \
   > "$STAGE/usr/share/icons/hicolor/scalable/apps/maxnet.svg"
 
 for size in 24x24 48x48 96x96; do
-  icon="$ROOT/share/icons/hicolor/$size/apps/maxnet-os-start-0-4-12.png"
+  icon="$ROOT/share/icons/hicolor/$size/apps/maxnet-os-start-0-4-13.png"
   install -Dm644 "$icon" \
-    "$STAGE/usr/share/icons/hicolor/$size/apps/maxnet-os-start-0-4-12.png"
+    "$STAGE/usr/share/icons/hicolor/$size/apps/maxnet-os-start-0-4-13.png"
 done
 
 while IFS= read -r -d '' file; do

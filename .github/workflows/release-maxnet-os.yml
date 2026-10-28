@@ -46,7 +46,7 @@ jobs:
           grep -Fq 'usr/share/maxnet-os/maxnet-user-logo.png' <<< "$package_listing"
           grep -Fq 'usr/share/icons/hicolor/scalable/apps/maxnet.svg' <<< "$package_listing"
           for size in 24x24 48x48 96x96; do
-            grep -Fq "usr/share/icons/hicolor/$size/apps/maxnet-os-start-0-4-12.png" <<< "$package_listing"
+            grep -Fq "usr/share/icons/hicolor/$size/apps/maxnet-os-start-0-4-13.png" <<< "$package_listing"
           done
           bash maxnet-os/tests/test-branding-assets.sh "$package"
           if grep -Fq 'usr/share/icons/maxnet-os-start.svg' <<< "$package_listing"; then
