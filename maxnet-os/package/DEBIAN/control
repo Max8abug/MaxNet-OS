@@ -3,7 +3,7 @@ Version: 0.4.1
 Section: x11
 Priority: optional
 Architecture: all
-Depends: bash, curl, mpv, policykit-1, python3, xdg-utils, zenity
+Depends: bash, celluloid | mpv, curl, policykit-1, python3, xdg-utils, zenity
 Recommends: chromium | chromium-browser | firefox
 Maintainer: MaxOS contributors
 Description: MaxNet-themed MaxOS desktop integration

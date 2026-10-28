@@ -33,6 +33,17 @@ jobs:
       - name: Test MaxOS app launchers
         run: bash maxnet-os/tests/test-launchers.sh
 
+      - name: Build and verify MaxOS package
+        shell: bash
+        run: |
+          ./maxnet-os/package/build-deb.sh
+          package="maxnet-os/dist/maxnet-os_$(tr -d '[:space:]' < maxnet-os/VERSION)_amd64.deb"
+          test -s "$package"
+          dependencies="$(dpkg-deb -f "$package" Depends)"
+          grep -Fq 'celluloid | mpv' <<< "$dependencies"
+          package_listing="$(dpkg-deb -c "$package")"
+          grep -Fq 'usr/share/maxnet-os/maxos-intro.mp4' <<< "$package_listing"
+
   build-and-release:
     needs: launcher-checks
     if: github.event_name != 'pull_request'
