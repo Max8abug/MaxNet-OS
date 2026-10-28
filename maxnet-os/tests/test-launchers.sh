@@ -29,7 +29,7 @@ make_test_path() {
   mkdir -p "$path_dir"
 
   local tool target
-  for tool in python3 install date dirname; do
+  for tool in python3 install date dirname chmod; do
     target="$(command -v "$tool")" || fail "Required test utility not found: $tool"
     ln -s "$target" "$path_dir/$tool"
   done
@@ -52,10 +52,36 @@ printf '%s\0' "$@" > "${MAXOS_TEST_XDG_ARGS:?}"
 MOCK
 chmod +x "$tmp_dir/mock-xdg-open"
 
+cat > "$tmp_dir/mock-mpv" <<'MOCK'
+#!/bin/sh
+printf 'intro\n' >> "${MAXOS_TEST_EVENTS:?}"
+printf '%s\0' "$@" > "${MAXOS_TEST_MPV_ARGS:?}"
+MOCK
+chmod +x "$tmp_dir/mock-mpv"
+
+cat > "$tmp_dir/mock-zenity" <<'MOCK'
+#!/bin/sh
+case "$1" in
+  --question)
+    printf 'setup-prompt\n' >> "${MAXOS_TEST_EVENTS:?}"
+    exit 1
+    ;;
+  --list)
+    printf 'theme-picker\n' >> "${MAXOS_TEST_EVENTS:?}"
+    exit 0
+    ;;
+esac
+exit 0
+MOCK
+chmod +x "$tmp_dir/mock-zenity"
+
 chromium_path="$(make_test_path chromium chromium)"
 firefox_path="$(make_test_path firefox firefox)"
 no_browser_path="$(make_test_path no-browser "")"
 ln -s "$tmp_dir/mock-xdg-open" "$no_browser_path/xdg-open"
+intro_path="$(make_test_path intro "")"
+ln -s "$tmp_dir/mock-mpv" "$intro_path/mpv"
+ln -s "$tmp_dir/mock-zenity" "$intro_path/zenity"
 
 features=()
 while IFS='|' read -r feature _rest; do
@@ -158,6 +184,40 @@ fi
 grep -Fq "without browser controls" "$no_browser_output" \
   || fail "Missing-browser error did not explain the supported app browsers"
 
+intro_video="$tmp_dir/intro.mp4"
+intro_events="$tmp_dir/intro-events"
+intro_args="$tmp_dir/intro-args"
+: > "$intro_video"
+MAXOS_TEST_EVENTS="$intro_events" \
+  MAXOS_TEST_MPV_ARGS="$intro_args" \
+  MAXNET_OS_INTRO_VIDEO="$intro_video" \
+  XDG_CONFIG_HOME="$tmp_dir/config-first-run" \
+  XDG_DATA_HOME="$tmp_dir/data-first-run" \
+  PATH="$intro_path" \
+  "$BASH" "$launcher" --first-run
+mapfile -t intro_sequence < "$intro_events"
+[[ "${intro_sequence[0]:-}" == "intro" && "${intro_sequence[1]:-}" == "setup-prompt" ]] \
+  || fail "Unexpected first-run event order: ${intro_sequence[*]:-none}"
+mapfile -d '' -t intro_player_args < "$intro_args"
+contains_arg "--fullscreen" "${intro_player_args[@]}" \
+  || fail "The intro video was not launched full-screen"
+[[ -e "$tmp_dir/config-first-run/maxnet-os/setup-prompt-complete" ]] \
+  || fail "First-run setup did not complete after the intro"
+
+: > "$intro_events"
+rm -f "$intro_args"
+MAXOS_TEST_EVENTS="$intro_events" \
+  MAXOS_TEST_MPV_ARGS="$intro_args" \
+  MAXNET_OS_INTRO_VIDEO="$intro_video" \
+  XDG_CONFIG_HOME="$tmp_dir/config-first-run" \
+  XDG_DATA_HOME="$tmp_dir/data-first-run" \
+  PATH="$intro_path" \
+  "$BASH" "$launcher" --first-run
+if grep -Fq "intro" "$intro_events" || [[ -e "$intro_args" ]]; then
+  fail "The intro video replayed after first-run setup was complete"
+fi
+
 printf 'PASS: %d MaxNet menu launchers plus Home work in Chromium app mode and Firefox kiosk mode.\n' \
   "${#features[@]}"
 printf 'PASS: unknown features and unsupported browsers fail safely.\n'
+printf 'PASS: first-run intro plays before setup once, then stays skipped.\n'
