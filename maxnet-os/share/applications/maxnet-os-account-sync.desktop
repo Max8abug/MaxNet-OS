@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Sync MaxNet Account
+Comment=Sync your MaxNet theme, background, permissions, and available apps
+Exec=maxnet-os --sync-account
+Icon=maxnet-signin
+Terminal=false
+Categories=X-MaxNet;
+StartupNotify=true

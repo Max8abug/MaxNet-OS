@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=System Settings
+Comment=Configure this computer
+TryExec=cinnamon-settings
+Exec=cinnamon-settings
+Icon=preferences-system
+Terminal=false
+StartupNotify=true
+Categories=X-MaxOS-System;

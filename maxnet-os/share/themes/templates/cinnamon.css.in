@@ -5,22 +5,21 @@
   background-image: @BUTTON_BG@;
   color: @FG@;
   font-family: @FONT@;
-  border-top: 2px solid @SURFACE@;
-  box-shadow: inset 0 1px 0 @SURFACE@, inset 0 -1px 0 @BORDER@;
+  min-height: 42px;
+  border-top: 1px solid @FRAME_HIGHLIGHT@;
+  box-shadow: inset 0 1px @FRAME_HIGHLIGHT@, 0 -3px 14px @FRAME_SHADOW@;
 }
 
 #panel .panel-button,
 .panel .panel-button {
   color: @FG@;
-  background-color: @BG@;
-  background-image: @BUTTON_BG@;
-  border-top: 1px solid @SURFACE@;
-  border-left: 1px solid @SURFACE@;
-  border-right: 1px solid @BORDER@;
-  border-bottom: 1px solid @BORDER@;
-  border-radius: @RADIUS@;
-  padding: 3px 8px;
-  box-shadow: inset 1px 1px @SURFACE@, inset -1px -1px @BORDER@;
+  background-color: transparent;
+  background-image: none;
+  border: 1px solid transparent;
+  border-radius: @CONTROL_RADIUS@;
+  margin: 3px 2px;
+  padding: 5px 9px;
+  box-shadow: none;
 }
 
 #panel .panel-button:hover,
@@ -29,73 +28,93 @@
 .panel .panel-button:hover,
 .panel .panel-button:checked,
 .panel .panel-button:focus {
-  background-color: @ACCENT@;
+  background-color: @SURFACE@;
   background-image: none;
-  color: @ACCENT_FG@;
+  color: @FG@;
   border-color: @BORDER@;
+  box-shadow: 0 1px 3px @FRAME_SHADOW@;
 }
 
 #panel .panel-button:active,
 .panel .panel-button:active {
-  background-color: @BG@;
-  background-image: @BUTTON_BG@;
-  color: @FG@;
-  border-top-color: @BORDER@;
-  border-left-color: @BORDER@;
-  border-right-color: @SURFACE@;
-  border-bottom-color: @SURFACE@;
-  box-shadow: inset 1px 1px @BORDER@, inset -1px -1px @SURFACE@;
+  background-color: @ACCENT@;
+  background-image: none;
+  color: @ACCENT_FG@;
+  border-color: @ACCENT@;
+  box-shadow: inset 0 1px 2px @FRAME_SHADOW@;
 }
 
 #panel .panel-left > .applet-box:first-child.panel-button,
 #panel .panel-left > .applet-box:first-child .panel-button {
-  min-width: 76px;
-  padding: 3px 10px;
-  border-radius: 2px;
+  min-width: 88px;
+  min-height: 30px;
+  margin: 3px 6px 3px 3px;
+  padding: 4px 12px;
+  color: @FG@;
+  background-color: @SURFACE@;
+  background-image: @BUTTON_BG@;
+  border: @FRAME@;
+  border-radius: @RADIUS@;
+  box-shadow: inset 0 1px @FRAME_HIGHLIGHT@, 0 2px 5px @FRAME_SHADOW@;
+}
+
+#panel .panel-left > .applet-box:first-child.panel-button:hover,
+#panel .panel-left > .applet-box:first-child .panel-button:hover {
+  color: @ACCENT_FG@;
+  background-color: @ACCENT@;
+  background-image: none;
+  border-color: @BORDER@;
 }
 
 #panel .panel-left > .applet-box:first-child .applet-label {
   font-weight: 700;
 }
 
+#panel .applet-label {
+  font-weight: 600;
+}
+
+#panel .applet-icon {
+  icon-size: 20px;
+}
+
 .window-list-item-box {
   color: @FG@;
-  background-color: @BG@;
-  background-image: @BUTTON_BG@;
-  border-top: 1px solid @SURFACE@;
-  border-left: 1px solid @SURFACE@;
-  border-right: 1px solid @BORDER@;
-  border-bottom: 1px solid @BORDER@;
-  border-radius: @RADIUS@;
-  box-shadow: inset 1px 1px @SURFACE@, inset -1px -1px @BORDER@;
+  background-color: transparent;
+  background-image: none;
+  border: 1px solid transparent;
+  border-radius: @CONTROL_RADIUS@;
+  margin: 3px 2px;
+  padding: 4px 9px;
+  box-shadow: none;
 }
 
 .window-list-item-box:hover,
 .window-list-item-box:focus {
-  background-color: @ACCENT@;
+  background-color: @SURFACE@;
   background-image: none;
-  color: @ACCENT_FG@;
+  color: @FG@;
+  border-color: @BORDER@;
 }
 
 .window-list-item-box:active {
-  background-color: @BG@;
-  background-image: @BUTTON_BG@;
-  border-top-color: @BORDER@;
-  border-left-color: @BORDER@;
-  border-right-color: @SURFACE@;
-  border-bottom-color: @SURFACE@;
-  box-shadow: inset 1px 1px @BORDER@, inset -1px -1px @SURFACE@;
+  background-color: @SURFACE@;
+  background-image: none;
+  border-color: @BORDER@;
+  border-bottom: 2px solid @ACCENT@;
+  box-shadow: 0 1px 3px @FRAME_SHADOW@;
 }
 
 #menu,
 .menu,
 .appmenu-background {
-  background-color: @BG@;
+  background-color: @SURFACE@;
   background-image: none;
   color: @FG@;
   border: @FRAME@;
   border-radius: @RADIUS@;
-  box-shadow: inset 1px 1px @SURFACE@, inset -1px -1px @BORDER@, 2px 2px 0 @BORDER@;
+  padding: 6px;
+  box-shadow: inset 0 1px @FRAME_HIGHLIGHT@, 0 14px 32px @FRAME_SHADOW@;
   font-family: @FONT@;
 }
 
@@ -107,14 +126,16 @@
   color: @FG@;
   border: @FRAME@;
   border-radius: @RADIUS@;
+  box-shadow: 0 10px 24px @FRAME_SHADOW@;
   font-family: @FONT@;
 }
 
 .appmenu-sidebar {
   background-color: @ACCENT@;
-  background-image: @PANEL_BG@;
+  background-image: none;
   color: @ACCENT_FG@;
   border-right: 1px solid @BORDER@;
+  padding: 8px;
 }
 
 .appmenu-main-box,
@@ -124,18 +145,31 @@
 .appmenu-favs-box,
 .appmenu-system-box,
 .appmenu-places-box {
-  background-color: @BG@;
+  background-color: @SURFACE@;
   background-image: none;
   color: @FG@;
 }
 
 .appmenu-category-button,
-.appmenu-application-button,
 .appmenu-sidebar-button,
 .appmenu-system-button {
   color: @FG@;
-  background-color: @BG@;
-  border-radius: @RADIUS@;
+  background-color: transparent;
+  background-image: none;
+  border: 1px solid transparent;
+  border-radius: @CONTROL_RADIUS@;
+  margin: 2px;
+  padding: 7px 9px;
+}
+
+.appmenu-application-button {
+  color: @FG@;
+  background-color: @SURFACE@;
+  background-image: none;
+  border: 1px solid @BORDER@;
+  border-radius: @CONTROL_RADIUS@;
+  margin: 3px;
+  padding: 8px;
 }
 
 .appmenu-category-button:hover,
@@ -147,6 +181,15 @@
   color: @ACCENT_FG@;
   background-color: @ACCENT@;
   background-image: none;
+  border-color: @ACCENT@;
+}
+
+.appmenu-application-button:hover,
+.appmenu-application-button:focus {
+  color: @ACCENT_FG@;
+  background-color: @ACCENT@;
+  background-image: none;
+  border-color: @ACCENT@;
 }
 
 .appmenu-search-box,
@@ -155,20 +198,23 @@
   background-color: @SURFACE@;
   background-image: none;
   border: 1px solid @BORDER@;
+  border-radius: @CONTROL_RADIUS@;
+  padding: 7px 9px;
 }
 
 #menu .menu-favorites-box {
   background-color: @ACCENT@;
-  background-image: @PANEL_BG@;
+  background-image: none;
   color: @ACCENT_FG@;
   border: 1px solid @BORDER@;
-  border-radius: @RADIUS@;
+  border-radius: @CONTROL_RADIUS@;
+  padding: 6px;
 }
 
 #menu .menu-categories-box,
 #menu .menu-applications-box,
 #menu .menu-applications-inner-box {
-  background-color: @BG@;
+  background-color: @SURFACE@;
   background-image: none;
   color: @FG@;
 }
@@ -180,7 +226,8 @@
 .popup-menu-item {
   color: @FG@;
   font-family: @FONT@;
-  border-radius: @RADIUS@;
+  border-radius: @CONTROL_RADIUS@;
+  padding: 6px 9px;
 }
 
 #menu .menu-category-button:hover,
@@ -207,17 +254,19 @@ StEntry {
   border: 1px solid @BORDER@;
   color: @FG@;
   font-family: @FONT@;
+  border-radius: @CONTROL_RADIUS@;
+  padding: 7px 9px;
   selection-background-color: @ACCENT@;
   selected-color: @ACCENT_FG@;
 }
 
 .button,
 .menu-item {
-  border-radius: 2px;
+  border-radius: @CONTROL_RADIUS@;
 }
 
 .button {
-  background-color: @BG@;
+  background-color: @SURFACE@;
   background-image: @BUTTON_BG@;
   color: @FG@;
   border: @FRAME@;

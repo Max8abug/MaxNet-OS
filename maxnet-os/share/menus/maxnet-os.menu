@@ -8,4 +8,11 @@
       <Category>X-MaxNet</Category>
     </Include>
   </Menu>
+  <Menu>
+    <Name>X-MaxOS-System</Name>
+    <Directory>maxnet-os-system.directory</Directory>
+    <Include>
+      <Category>X-MaxOS-System</Category>
+    </Include>
+  </Menu>
 </Menu>

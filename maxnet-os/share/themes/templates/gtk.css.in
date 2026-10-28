@@ -41,6 +41,15 @@ dialog.background,
   color: @FG@;
 }
 
+window > box,
+dialog > box,
+.csd > box,
+.solid-csd > box {
+  background-color: @SURFACE@;
+  background-image: none;
+  color: @FG@;
+}
+
 headerbar,
 .titlebar {
   min-height: 30px;

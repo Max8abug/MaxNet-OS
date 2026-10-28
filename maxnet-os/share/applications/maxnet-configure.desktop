@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Configure MaxNet OS
+Name=Configure MaxOS
 Comment=Set the MaxNet server used by this desktop
 Exec=maxnet-os configure
 Icon=maxnet
 Terminal=false
-Categories=Settings;Network;
+Categories=X-MaxOS-System;

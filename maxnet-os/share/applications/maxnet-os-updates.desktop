@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=MaxNet OS Update Manager
-Comment=Check for verified MaxNet OS releases on GitHub
+Name=MaxOS Update Manager
+Comment=Check for verified MaxOS releases on GitHub
 Exec=maxnet-os --updates
 Icon=system-software-update
 Terminal=false
-Categories=Settings;System;
+Categories=X-MaxOS-System;

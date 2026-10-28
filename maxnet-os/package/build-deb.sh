@@ -13,6 +13,8 @@ sed -i "s/^Version: .*/Version: $VERSION/" "$STAGE/DEBIAN/control"
 install -Dm755 "$ROOT/bin/maxnet-os" "$STAGE/usr/bin/maxnet-os"
 install -Dm755 "$ROOT/bin/maxnet-os-sync-logo" "$STAGE/usr/bin/maxnet-os-sync-logo"
 install -Dm644 "$ROOT/VERSION" "$STAGE/usr/share/maxnet-os/VERSION"
+install -Dm644 "$ROOT/share/applications/features.tsv" \
+  "$STAGE/usr/share/maxnet-os/features.tsv"
 install -Dm644 "$ROOT/share/backgrounds/maxnet-os.svg" \
   "$STAGE/usr/share/backgrounds/maxnet-os.svg"
 
@@ -139,6 +141,8 @@ install -Dm644 "$ROOT/share/menus/maxnet-os.menu" \
   "$STAGE/etc/xdg/menus/applications-merged/maxnet-os.menu"
 install -Dm644 "$ROOT/share/desktop-directories/maxnet-os.directory" \
   "$STAGE/usr/share/desktop-directories/maxnet-os.directory"
+install -Dm644 "$ROOT/share/desktop-directories/maxnet-os-system.directory" \
+  "$STAGE/usr/share/desktop-directories/maxnet-os-system.directory"
 
 install -Dm644 "$ROOT/share/maxnet-os/settings.conf" \
   "$STAGE/etc/maxnet-os/settings.conf"
