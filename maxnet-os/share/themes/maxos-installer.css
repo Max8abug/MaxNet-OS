@@ -1,0 +1,56 @@
+/* Original MaxOS installer treatment inspired by early brushed-metal wizards. */
+window#live_installer {
+  background-color: #d9dde4;
+  color: #242a33;
+}
+
+#maxos-installer-page {
+  background-color: #e4e7ec;
+  color: #202733;
+}
+
+#maxos-installer-header {
+  padding: 18px 22px;
+  border: 1px solid #aab2bf;
+  border-radius: 8px;
+  background-image: linear-gradient(to bottom, #fbfcfe, #d2d8e1);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.95);
+}
+
+#maxos-installer-title {
+  color: #1e2937;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+#maxos-installer-subtitle {
+  color: #5a6574;
+  font-size: 13px;
+}
+
+#maxos-installer-card {
+  padding: 22px;
+  border: 1px solid #b8bec8;
+  border-radius: 8px;
+  background-color: #f8f9fb;
+  box-shadow: inset 0 1px #fff, 0 1px 2px rgba(28, 38, 52, 0.12);
+}
+
+#maxos-installer-note {
+  color: #505b6a;
+  font-size: 12px;
+}
+
+#maxos-sign-in-button {
+  padding: 8px 16px;
+  border: 1px solid #174f9b;
+  border-radius: 6px;
+  background-image: linear-gradient(to bottom, #71b8ff, #2872d6 52%, #1c5bb6);
+  color: #fff;
+  font-weight: 700;
+  text-shadow: 0 1px rgba(0, 0, 0, 0.25);
+}
+
+#maxos-sign-in-button:hover {
+  background-image: linear-gradient(to bottom, #91c8ff, #3c86e7 52%, #2166c8);
+}

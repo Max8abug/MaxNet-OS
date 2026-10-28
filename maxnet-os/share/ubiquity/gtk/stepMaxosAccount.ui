@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk+" version="3.20"/>
+  <object class="GtkBox" id="stepMaxosAccount">
+    <property name="name">maxos-installer-page</property>
+    <property name="orientation">vertical</property>
+    <property name="spacing">22</property>
+    <property name="margin-start">36</property>
+    <property name="margin-end">36</property>
+    <property name="margin-top">30</property>
+    <property name="margin-bottom">30</property>
+    <child>
+      <object class="GtkBox" id="maxos_installer_header">
+        <property name="name">maxos-installer-header</property>
+        <property name="orientation">horizontal</property>
+        <property name="spacing">18</property>
+        <child>
+          <object class="GtkImage" id="maxos_installer_logo">
+            <property name="pixel-size">64</property>
+            <property name="icon-name">maxos</property>
+            <property name="visible">True</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="maxos_installer_heading">
+            <property name="orientation">vertical</property>
+            <property name="spacing">5</property>
+            <child>
+              <object class="GtkLabel" id="maxos_installer_title">
+                <property name="name">maxos-installer-title</property>
+                <property name="label">Connect your MaxNet account</property>
+                <property name="xalign">0</property>
+                <property name="wrap">True</property>
+                <property name="visible">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="maxos_installer_subtitle">
+                <property name="name">maxos-installer-subtitle</property>
+                <property name="label">The final step before installing MaxOS</property>
+                <property name="xalign">0</property>
+                <property name="visible">True</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox" id="maxos_installer_card">
+        <property name="name">maxos-installer-card</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">16</property>
+        <property name="margin-top">6</property>
+        <property name="margin-bottom">6</property>
+        <property name="margin-start">4</property>
+        <property name="margin-end">4</property>
+        <child>
+          <object class="GtkLabel" id="maxnet_account_explanation">
+            <property name="label">Sign in or create a MaxNet account to connect this computer to your MaxNet experience. Your Linux username, password, and administrator access remain separate from MaxNet.</property>
+            <property name="xalign">0</property>
+            <property name="wrap">True</property>
+            <property name="max-width-chars">76</property>
+            <property name="visible">True</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="maxnet_sign_in_button">
+            <property name="name">maxnet-sign-in-button</property>
+            <property name="label">Open MaxNet sign in / registration</property>
+            <property name="halign">start</property>
+            <property name="can-focus">True</property>
+            <property name="visible">True</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="maxnet_account_offline_note">
+            <property name="name">maxos-installer-note</property>
+            <property name="label">You can continue without an account and connect later from the desktop. After installation, MaxOS plays your welcome video the first time you start the computer.</property>
+            <property name="xalign">0</property>
+            <property name="wrap">True</property>
+            <property name="max-width-chars">76</property>
+            <property name="visible">True</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

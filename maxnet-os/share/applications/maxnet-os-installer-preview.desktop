@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=MaxOS Installer Preview
+Comment=Preview the installer and MaxNet account step without installing
+Exec=maxos-installer-preview
+Icon=maxos
+Terminal=false
+Categories=System;
+StartupNotify=true

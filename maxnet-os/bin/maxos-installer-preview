@@ -1,0 +1,211 @@
+#!/usr/bin/env python3
+"""Non-destructive, administrator-only preview of the MaxOS install flow."""
+
+from __future__ import annotations
+
+import grp
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+from urllib.parse import urlencode
+from uuid import uuid4
+
+from gi.repository import Gdk, GLib, Gtk
+
+
+STEPS = [
+    ("Welcome to MaxOS", "A MaxOS-style welcome screen for the USB installer."),
+    ("Language", "Choose the language for your installed system."),
+    ("Keyboard", "Choose a keyboard layout."),
+    ("Installation type", "Review the normal Linux Mint disk and partition options."),
+    ("Time zone", "Choose your location and time zone."),
+    ("Create your computer account", "Set up the local Linux username and password."),
+    ("Connect your MaxNet account", "Sign in or register with MaxNet, or continue offline."),
+]
+DEFAULT_URL = "https://moonbat.ddns.net"
+
+
+def is_local_admin() -> bool:
+    if os.geteuid() == 0:
+        return True
+    admin_gids = set()
+    for group_name in ("sudo", "admin", "wheel"):
+        try:
+            admin_gids.add(grp.getgrnam(group_name).gr_gid)
+        except KeyError:
+            continue
+    return bool(admin_gids.intersection(set(os.getgroups()) | {os.getegid()}))
+
+
+def maxnet_url() -> str:
+    base_url = DEFAULT_URL
+    settings_path = Path("/etc/maxnet-os/settings.conf")
+    try:
+        candidate = settings_path.read_text(encoding="utf-8").splitlines()[0].rstrip("/")
+        if candidate.startswith("https://") and not any(char in candidate for char in ("?", "#", "@")):
+            base_url = candidate
+    except (OSError, IndexError):
+        pass
+    query = urlencode({
+        "maxnet-feature": "signin",
+        "maxnet-view": "app",
+        "maxnet-launch-id": "preview-" + uuid4().hex,
+    })
+    return f"{base_url}/?{query}"
+
+
+class InstallerPreview(Gtk.Window):
+    def __init__(self) -> None:
+        super().__init__(title="MaxOS Installer Preview — Simulation only")
+        self.set_name("live_installer")
+        self.set_default_size(780, 520)
+        self.set_border_width(22)
+        self.step_index = 0
+
+        provider = Gtk.CssProvider()
+        css_path = Path("/usr/share/maxnet-os/maxos-installer.css")
+        if css_path.is_file():
+            try:
+                provider.load_from_path(str(css_path))
+                screen = Gdk.Screen.get_default()
+                if screen:
+                    Gtk.StyleContext.add_provider_for_screen(
+                        screen, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+            except GLib.Error:
+                pass
+
+        root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18)
+        root.get_style_context().add_class("maxos-installer-page")
+        self.add(root)
+
+        header = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
+        header.get_style_context().add_class("maxos-installer-header")
+        root.pack_start(header, False, False, 0)
+
+        logo = Gtk.Image.new_from_file("/usr/share/maxnet-os/maxnet-user-logo.png")
+        logo.set_pixel_size(64)
+        header.pack_start(logo, False, False, 0)
+
+        heading = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        header.pack_start(heading, True, True, 0)
+        title = Gtk.Label(label="MaxOS Installation Assistant")
+        title.set_xalign(0)
+        title.get_style_context().add_class("maxos-installer-title")
+        heading.pack_start(title, False, False, 0)
+        subtitle = Gtk.Label(label="Snow Leopard-inspired preview • No changes will be made")
+        subtitle.set_xalign(0)
+        subtitle.get_style_context().add_class("maxos-installer-subtitle")
+        heading.pack_start(subtitle, False, False, 0)
+
+        self.card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
+        self.card.set_margin_top(8)
+        self.card.set_margin_bottom(8)
+        self.card.set_margin_start(4)
+        self.card.set_margin_end(4)
+        self.card.get_style_context().add_class("maxos-installer-card")
+        root.pack_start(self.card, True, True, 0)
+
+        self.step_title = Gtk.Label()
+        self.step_title.set_xalign(0)
+        self.step_title.get_style_context().add_class("maxos-installer-title")
+        self.card.pack_start(self.step_title, False, False, 0)
+        self.description = Gtk.Label()
+        self.description.set_xalign(0)
+        self.description.set_line_wrap(True)
+        self.description.set_max_width_chars(76)
+        self.card.pack_start(self.description, False, False, 0)
+
+        self.video_button = Gtk.Button(label="Test welcome video")
+        self.video_button.connect("clicked", self.play_intro)
+        self.card.pack_start(self.video_button, False, False, 0)
+
+        self.account_actions = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        self.sign_in_button = Gtk.Button(label="Open MaxNet sign in / registration")
+        self.sign_in_button.connect("clicked", self.open_maxnet)
+        self.account_actions.pack_start(self.sign_in_button, False, False, 0)
+        self.card.pack_start(self.account_actions, False, False, 0)
+
+        note = Gtk.Label(label=(
+            "Preview only. Disk selection, partitioning, account creation, and installation "
+            "are simulated; nothing is written to the computer."
+        ))
+        note.set_xalign(0)
+        note.set_line_wrap(True)
+        note.get_style_context().add_class("maxos-installer-note")
+        root.pack_start(note, False, False, 0)
+
+        nav = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        root.pack_end(nav, False, False, 0)
+        self.progress = Gtk.Label()
+        self.progress.set_xalign(0)
+        nav.pack_start(self.progress, True, True, 0)
+        self.back_button = Gtk.Button(label="Back")
+        self.back_button.connect("clicked", self.go_back)
+        nav.pack_end(self.back_button, False, False, 0)
+        self.next_button = Gtk.Button(label="Continue")
+        self.next_button.get_style_context().add_class("maxos-sign-in-button")
+        self.next_button.connect("clicked", self.go_next)
+        nav.pack_end(self.next_button, False, False, 0)
+
+        self.render_step()
+
+    def render_step(self) -> None:
+        title, description = STEPS[self.step_index]
+        self.step_title.set_text(title)
+        self.description.set_text(description)
+        is_account_step = self.step_index == len(STEPS) - 1
+        self.account_actions.set_visible(is_account_step)
+        self.video_button.set_visible(self.step_index == 0)
+        self.back_button.set_sensitive(self.step_index > 0)
+        self.next_button.set_label("Finish preview" if is_account_step else "Continue")
+        self.progress.set_text(f"Step {self.step_index + 1} of {len(STEPS)}")
+
+    def open_maxnet(self, _button) -> None:
+        subprocess.Popen(["xdg-open", maxnet_url()], close_fds=True)
+
+    def play_intro(self, _button) -> None:
+        video = "/usr/share/maxnet-os/maxos-intro.mp4"
+        if not os.path.isfile(video):
+            self.description.set_text("The bundled welcome video is not installed.")
+            return
+        if shutil.which("mpv"):
+            subprocess.Popen([
+                "mpv", "--fullscreen", "--no-border", "--ontop", "--no-osc", video,
+            ], close_fds=True)
+        elif shutil.which("celluloid"):
+            subprocess.Popen([
+                "celluloid", "--mpv-fullscreen=yes", "--mpv-osc=no", video,
+            ], close_fds=True)
+        else:
+            self.description.set_text("Install mpv or Celluloid to test video playback.")
+
+    def go_back(self, _button) -> None:
+        if self.step_index:
+            self.step_index -= 1
+            self.render_step()
+
+    def go_next(self, _button) -> None:
+        if self.step_index + 1 < len(STEPS):
+            self.step_index += 1
+            self.render_step()
+            return
+        self.destroy()
+
+
+def main() -> int:
+    if not is_local_admin():
+        print("The MaxOS Installer Preview is restricted to local administrators.", file=sys.stderr)
+        return 1
+    window = InstallerPreview()
+    window.connect("destroy", Gtk.main_quit)
+    window.show_all()
+    window.account_actions.hide()
+    window.render_step()
+    Gtk.main()
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

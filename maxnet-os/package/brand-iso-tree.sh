@@ -44,7 +44,7 @@ def replace_versioned(relative, replacements):
     path.write_text(text)
 
 replace_versioned("boot/grub/grub.cfg", [
-    (r"Start MaxOS [0-9.]+ Cinnamon 64-bit", f"Start MaxOS {version} Cinnamon 64-bit"),
+    (r"Install MaxOS [0-9.]+ Cinnamon 64-bit", f"Install MaxOS {version} Cinnamon 64-bit"),
 ])
 replace_versioned("isolinux/live.cfg", [
     (r"menu title Welcome to MaxOS [0-9.]+ 64-bit", f"menu title Welcome to MaxOS {version} 64-bit"),
@@ -52,18 +52,60 @@ replace_versioned("isolinux/live.cfg", [
 
 replace_required("boot/grub/grub.cfg", {
     "Start Linux Mint 22.3 Cinnamon 64-bit (compatibility mode)": (
-        f"Start MaxOS {version} Cinnamon 64-bit (compatibility mode)"
+        "Try MaxOS desktop (compatibility mode)"
     ),
-    "Start Linux Mint 22.3 Cinnamon 64-bit": f"Start MaxOS {version} Cinnamon 64-bit",
+    "Start Linux Mint 22.3 Cinnamon 64-bit": f"Install MaxOS {version} Cinnamon 64-bit",
 })
 replace_required("isolinux/live.cfg", {
     "Welcome to Linux Mint 22.3 64-bit": f"Welcome to MaxOS {version} 64-bit",
-    "Start Linux Mint in compatibility mode": "Start MaxOS in compatibility mode",
-    "Start Linux Mint": "Start MaxOS",
+    "Start Linux Mint in compatibility mode": "Try MaxOS desktop (compatibility mode)",
+    "Start Linux Mint": "Install MaxOS",
 })
 replace_required("isolinux/menu.cfg", {
     "menu title Boot menu": "menu title MaxOS boot menu",
 })
+
+def add_option_to_boot_entry(relative, entry_pattern, command_pattern, option):
+    path = tree / relative
+    lines = path.read_text().splitlines()
+    entry_index = next(
+        (index for index, line in enumerate(lines)
+         if re.search(entry_pattern, line, re.IGNORECASE)),
+        None,
+    )
+    if entry_index is None:
+        raise SystemExit(f"Could not find installer boot entry in {relative}")
+
+    for index in range(entry_index + 1, len(lines)):
+        line = lines[index]
+        if line.strip().startswith("}") or (
+                relative.endswith("live.cfg") and re.match(r"\s*label\s+", line)):
+            break
+        if re.match(command_pattern, line.strip()):
+            if option not in line.split():
+                if " --" in line:
+                    line = line.replace(" --", f" {option} --", 1)
+                else:
+                    line = line.rstrip() + " " + option
+                lines[index] = line
+            path.chmod(path.stat().st_mode | stat.S_IWUSR)
+            path.write_text("\n".join(lines) + "\n")
+            return
+    raise SystemExit(f"Could not find installer kernel command in {relative}")
+
+
+add_option_to_boot_entry(
+    "boot/grub/grub.cfg",
+    r"menuentry\s+[\"']Install MaxOS",
+    r"linux\s+",
+    "only-ubiquity",
+)
+add_option_to_boot_entry(
+    "isolinux/live.cfg",
+    r"label\s+live\b",
+    r"append\s+",
+    "only-ubiquity",
+)
 
 disk_info = tree / ".disk/info"
 if not disk_info.is_file():

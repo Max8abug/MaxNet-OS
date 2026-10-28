@@ -15,9 +15,17 @@ install -Dm755 "$ROOT/package/DEBIAN/postinst" "$STAGE/DEBIAN/postinst"
 
 install -Dm755 "$ROOT/bin/maxnet-os" "$STAGE/usr/bin/maxnet-os"
 install -Dm755 "$ROOT/bin/maxnet-os-sync-logo" "$STAGE/usr/bin/maxnet-os-sync-logo"
+install -Dm755 "$ROOT/bin/maxos-installer-preview" \
+  "$STAGE/usr/bin/maxos-installer-preview"
 install -Dm644 "$ROOT/VERSION" "$STAGE/usr/share/maxnet-os/VERSION"
 install -Dm644 "$ROOT/share/branding/maxnet-user-logo.png" \
   "$STAGE/usr/share/maxnet-os/maxnet-user-logo.png"
+install -Dm644 "$ROOT/share/themes/maxos-installer.css" \
+  "$STAGE/usr/share/maxnet-os/maxos-installer.css"
+install -Dm644 "$ROOT/share/ubiquity/plugins/maxos-account.py" \
+  "$STAGE/usr/lib/ubiquity/plugins/maxos-account.py"
+install -Dm644 "$ROOT/share/ubiquity/gtk/stepMaxosAccount.ui" \
+  "$STAGE/usr/share/ubiquity/gtk/stepMaxosAccount.ui"
 install -Dm644 "$ROOT/share/applications/features.tsv" \
   "$STAGE/usr/share/maxnet-os/features.tsv"
 sed -e "s|@MAXNET_LOGO_DATA_URI@|$logo_data_uri|g" \

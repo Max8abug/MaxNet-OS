@@ -33,6 +33,9 @@ jobs:
       - name: Test MaxOS app launchers
         run: bash maxnet-os/tests/test-launchers.sh
 
+      - name: Test MaxOS installer integration
+        run: bash maxnet-os/tests/test-installer-integration.sh
+
       - name: Build and verify MaxOS package
         shell: bash
         run: |
@@ -44,6 +47,10 @@ jobs:
           package_listing="$(dpkg-deb -c "$package")"
           grep -Fq 'usr/share/maxnet-os/maxos-intro.mp4' <<< "$package_listing"
           grep -Fq 'usr/share/maxnet-os/maxnet-user-logo.png' <<< "$package_listing"
+          grep -Fq 'usr/bin/maxos-installer-preview' <<< "$package_listing"
+          grep -Fq 'usr/lib/ubiquity/plugins/maxos-account.py' <<< "$package_listing"
+          grep -Fq 'usr/share/ubiquity/gtk/stepMaxosAccount.ui' <<< "$package_listing"
+          grep -Fq 'usr/share/maxnet-os/maxos-installer.css' <<< "$package_listing"
           grep -Fq 'usr/share/icons/hicolor/scalable/apps/maxnet.svg' <<< "$package_listing"
           grep -Fq 'usr/share/icons/hicolor/128x128/apps/maxnet-os-start.png' <<< "$package_listing"
           control_dir="$(mktemp -d)"

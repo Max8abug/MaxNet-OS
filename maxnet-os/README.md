@@ -32,6 +32,12 @@ Synced app availability controls MaxOS's launcher visibility, not site authoriza
 
 The **Sign in to MaxNet** launcher uses the normal MaxNet account dialog and keeps its session in a separate persistent browser profile. The local OS login PIN/password is never sent to MaxNet or synced; it is managed by Linux Mint, and the same local credential is also used for `sudo`.
 
+## MaxOS installer experience
+
+The ISO's normal boot entry opens the Linux Mint installer directly instead of landing on the live desktop. Mint's language, keyboard, partition, location, and local-user steps remain in place; a final **MaxNet Account** page opens MaxNet sign-in or registration in the default browser. Account setup is optional, so an offline install can continue. A compatibility-mode boot entry remains available for the live desktop. After installation, the existing first-login welcome flow plays the bundled MaxNet intro video before desktop setup.
+
+Local administrators can open **MaxOS Installer Preview** from Start → System to review the installer screens, test the MaxNet sign-in link, and play the intro video without changing disks or reinstalling. The preview is a simulation only; it never launches the real installer or writes installation settings.
+
 App launch supports sign-in, Chatroom, Forums, Direct Messages, Network, Eaglercraft, and the other MaxNet apps listed in the menu. Each feature launcher opens the matching MaxNet component without the website's desktop, taskbar, or navigation shell. Chromium/Chrome/Brave uses a native app window without browser controls. Firefox hides its tabs, address bar, and browser toolbars through a dedicated profile stylesheet while keeping the normal desktop title bar and window controls, so its app windows remain movable, resizable, and closable.
 
 ## Build the MaxOS integration package
@@ -63,15 +69,15 @@ Restore the previous Cinnamon theme and wallpaper with:
 maxnet-os --restore-system-theme
 ```
 
-## Make a bootable Linux Mint remaster
+## Make a bootable MaxOS remaster
 
 This repository does not include or redistribute a Linux Mint ISO. To make a bootable image:
 
 1. Download the Linux Mint edition/version and verify its published checksum.
 2. Use Cubic on a Linux Mint/Ubuntu host to customize the official ISO.
-3. In Cubic's terminal, install `zenity`, `python3`, `xdg-utils`, and Chromium or Chrome for browser-free MaxNet app windows; copy and install the built `.deb`.
-4. Choose the desired theme for the live-session user, then finish Cubic's ISO creation.
-5. Boot the result in a VM first. Test sign-in, chat, forum, Network, Eaglercraft/WebGL, all eight themes, and live-installer behavior before installing it on a physical computer.
+3. In Cubic's terminal, install `zenity`, `python3`, `python3-gi`, `gir1.2-gtk-3.0`, `xdg-utils`, and Chromium or Chrome for browser-free MaxNet app windows; copy and install the built `.deb`.
+4. The package adds the Snow Leopard-inspired MaxOS installer page and admin-only preview. Keep the default **Install MaxOS** boot entry and the compatibility-mode live desktop entry.
+5. Boot the result in a VM first. Test the MaxNet account page, installation, first-login intro, chat, forums, Network, Eaglercraft/WebGL, and all eight themes before installing on physical hardware.
 
 The first boot splash is stored in the ISO's initramfs as well as the live root filesystem. The branding scripts replace both the main Plymouth animation and its separate Mint throbber frames with the supplied MaxOS boot icon. After branding the root filesystem, run `package/brand-initramfs.sh /path/to/iso-tree/casper/initrd.lz /path/to/branded-rootfs` before rebuilding the ISO so the early boot image gets the same artwork.
 
