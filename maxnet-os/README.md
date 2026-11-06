@@ -22,7 +22,7 @@ All 22 MaxNet feature launchers appear together in the **MaxNet** section in Sta
 
 ## First-run welcome intro
 
-On the first Cinnamon login after installation, MaxOS plays the bundled MaxNet intro video full-screen before showing the sign-in and theme setup prompts. The video is stored locally, so it also plays when the MaxNet server is offline. MaxOS uses `mpv` when available, then falls back to Celluloid on the Mint live system; the fallback closes after the six-second clip. Press **Q** or **Esc** to skip. It does not replay after the first-run setup marker is created.
+On the first Cinnamon login after installation, MaxOS offers secure MaxNet account sync and a local theme choice before playing the bundled intro video full-screen. The video is stored locally, so it also plays when the MaxNet server is offline. MaxOS uses `mpv` when available, then falls back to Celluloid; the fallback closes after the clip. Press **Q** or **Esc** to skip. It does not replay after the first-run setup marker is created.
 
 ## MaxNet account settings during setup
 
@@ -34,7 +34,7 @@ The **Sign in to MaxNet** launcher uses the normal MaxNet account dialog and kee
 
 ## MaxOS installer experience
 
-The ISO's normal boot entry opens the Linux Mint installer directly instead of landing on the live desktop. Mint's language, keyboard, partition, location, and local-user steps remain in place; a final **MaxNet Account** page opens MaxNet sign-in or registration in the default browser. Account setup is optional, so an offline install can continue. A compatibility-mode boot entry remains available for the live desktop. After installation, the existing first-login welcome flow plays the bundled MaxNet intro video before desktop setup.
+The ISO's normal boot entry opens the full-screen MaxOS setup assistant directly instead of landing on the live desktop. It uses a purple galaxy backdrop and centered, opaque setup styling inspired by the supplied Mac OS X Leopard reference. Mint's language, keyboard, partition, location, and local-user steps remain in place; a final **MaxNet Account** page offers MaxNet sign-in or registration. Since the live installer session cannot safely transfer a website login into the installed user's browser, MaxOS asks for a fresh, one-time settings authorization on first desktop startup. Theme/background/app sync or the local offline choice happens before the intro video. The account step is optional, so an offline install can continue. A compatibility-mode boot entry remains available for the live desktop.
 
 Local administrators can open **MaxOS Installer Preview** from Start → System to review the installer screens, test the MaxNet sign-in link, and play the intro video without changing disks or reinstalling. The preview is a simulation only; it never launches the real installer or writes installation settings.
 

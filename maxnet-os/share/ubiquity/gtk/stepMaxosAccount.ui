@@ -37,7 +37,7 @@
             <child>
               <object class="GtkLabel" id="maxos_installer_subtitle">
                 <property name="name">maxos-installer-subtitle</property>
-                <property name="label">The final step before installing MaxOS</property>
+                <property name="label">Connect MaxOS to your MaxNet experience</property>
                 <property name="xalign">0</property>
                 <property name="visible">True</property>
               </object>
@@ -57,7 +57,7 @@
         <property name="margin-end">4</property>
         <child>
           <object class="GtkLabel" id="maxnet_account_explanation">
-            <property name="label">Sign in or create a MaxNet account to connect this computer to your MaxNet experience. Your Linux username, password, and administrator access remain separate from MaxNet.</property>
+            <property name="label">You can sign in or create a MaxNet account now. After installation, MaxOS will securely offer to sync your MaxNet theme, desktop background, and available apps before playing the welcome video. Your Linux username, password, and administrator access stay local and separate.</property>
             <property name="xalign">0</property>
             <property name="wrap">True</property>
             <property name="max-width-chars">76</property>
@@ -67,7 +67,7 @@
         <child>
           <object class="GtkButton" id="maxnet_sign_in_button">
             <property name="name">maxnet-sign-in-button</property>
-            <property name="label">Open MaxNet sign in / registration</property>
+            <property name="label">Open MaxNet sign in or registration</property>
             <property name="halign">start</property>
             <property name="can-focus">True</property>
             <property name="visible">True</property>
@@ -76,7 +76,7 @@
         <child>
           <object class="GtkLabel" id="maxnet_account_offline_note">
             <property name="name">maxos-installer-note</property>
-            <property name="label">You can continue without an account and connect later from the desktop. After installation, MaxOS plays your welcome video the first time you start the computer.</property>
+            <property name="label">This step is optional. If MaxNet is offline, continue with installation; you can sync settings later. The first-boot welcome video plays after account setup or choosing to continue offline.</property>
             <property name="xalign">0</property>
             <property name="wrap">True</property>
             <property name="max-width-chars">76</property>

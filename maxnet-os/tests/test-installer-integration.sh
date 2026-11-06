@@ -30,6 +30,8 @@ if "plugin_is_install = True" not in plugin_text:
     raise SystemExit("Ubiquity will not present its install action on the final MaxOS step")
 if "misc.launch_uri(maxnet_url())" not in plugin_text:
     raise SystemExit("The MaxNet sign-in action is not connected")
+if "maxos-installer-wallpaper.svg" not in (root / "maxnet-os/package/build-deb.sh").read_text():
+    raise SystemExit("The setup assistant wallpaper is not included in the MaxOS package")
 
 ui_path = root / "maxnet-os/share/ubiquity/gtk/stepMaxosAccount.ui"
 ui_root = ET.parse(ui_path).getroot()
@@ -58,6 +60,7 @@ print("PASS: Ubiquity plugin, final-step UI, admin preview, account action, and 
 PY
 
 bash -n "$repo_root/maxnet-os/package/brand-iso-tree.sh"
+python3 -m py_compile "$repo_root/maxnet-os/package/patch-ubiquity-installer.py"
 PYTHONPYCACHEPREFIX="$tmp_dir/pycache" python3 -m py_compile \
   "$repo_root/maxnet-os/share/ubiquity/plugins/maxos-account.py" \
   "$repo_root/maxnet-os/bin/maxos-installer-preview"
@@ -126,4 +129,34 @@ if "only-ubiquity" not in live_block:
 if "only-ubiquity" in compat_block:
     raise SystemExit("Syslinux compatibility entry no longer provides a live desktop")
 print("PASS: GRUB and Syslinux boot to the installer by default and preserve a live desktop fallback.")
+PY
+
+frontend_fixture="$tmp_dir/rootfs/usr/lib/ubiquity/ubiquity/frontend"
+mkdir -p "$frontend_fixture"
+cat > "$frontend_fixture/gtk_ui.py" <<'PYTHON'
+class TestInstaller:
+    def customize_installer(self):
+        self.live_installer.set_resizable(False)
+PYTHON
+python3 "$repo_root/maxnet-os/package/patch-ubiquity-installer.py" "$tmp_dir/rootfs"
+python3 - "$frontend_fixture/gtk_ui.py" <<'PY'
+from pathlib import Path
+import ast
+import sys
+
+path = Path(sys.argv[1])
+text = path.read_text()
+ast.parse(text)
+for expected in (
+    'set_title("MaxOS Setup")',
+    'set_name("live_installer")',
+    "set_decorated(False)",
+    'get_object("wizard")',
+    'set_name("maxos-installer-shell")',
+    "maxos-installer.css",
+    "self.live_installer.fullscreen()",
+):
+    if expected not in text:
+        raise SystemExit(f"The Ubiquity frontend is missing installer behavior: {expected}")
+print("PASS: Ubiquity is branded, styled, and full-screen without the live desktop.")
 PY

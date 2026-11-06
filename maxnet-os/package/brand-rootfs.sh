@@ -211,4 +211,6 @@ if slides.exists():
         path.write_text(text.replace("Linux Mint", "MaxOS"))
 PY
 
+python3 "$PACKAGE_ROOT/package/patch-ubiquity-installer.py" "$ROOTFS"
+
 printf 'Applied MaxOS user-facing branding to %s\n' "$ROOTFS"

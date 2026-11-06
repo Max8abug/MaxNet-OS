@@ -324,13 +324,15 @@ MAXOS_TEST_EVENTS="$intro_events" \
   PATH="$intro_path" \
   "$BASH" "$launcher" --first-run
 mapfile -t intro_sequence < "$intro_events"
-[[ "${intro_sequence[0]:-}" == "intro" && "${intro_sequence[1]:-}" == "setup-prompt" ]] \
-  || fail "Unexpected first-run event order: ${intro_sequence[*]:-none}"
+[[ "${intro_sequence[0]:-}" == "setup-prompt" &&
+   "${intro_sequence[1]:-}" == "theme-picker" &&
+   "${intro_sequence[2]:-}" == "intro" ]] \
+  || fail "Account/theme onboarding did not finish before the intro: ${intro_sequence[*]:-none}"
 mapfile -d '' -t intro_player_args < "$intro_args"
 contains_arg "--fullscreen" "${intro_player_args[@]}" \
   || fail "The intro video was not launched full-screen"
 [[ -e "$tmp_dir/config-first-run/maxnet-os/setup-prompt-complete" ]] \
-  || fail "First-run setup did not complete after the intro"
+  || fail "First-run setup did not complete"
 
 celluloid_events="$tmp_dir/celluloid-events"
 celluloid_args="$tmp_dir/celluloid-args"
@@ -342,9 +344,10 @@ MAXOS_TEST_EVENTS="$celluloid_events" \
   PATH="$celluloid_path" \
   "$BASH" "$launcher" --first-run
 mapfile -t celluloid_sequence < "$celluloid_events"
-[[ "${celluloid_sequence[0]:-}" == "celluloid-intro" &&
-   "${celluloid_sequence[1]:-}" == "setup-prompt" ]] \
-  || fail "Celluloid fallback did not play before the setup prompt"
+[[ "${celluloid_sequence[0]:-}" == "setup-prompt" &&
+   "${celluloid_sequence[1]:-}" == "theme-picker" &&
+   "${celluloid_sequence[2]:-}" == "celluloid-intro" ]] \
+  || fail "Celluloid fallback did not play after account/theme onboarding"
 mapfile -d '' -t celluloid_player_args < "$celluloid_args"
 contains_arg "--mpv-fullscreen=yes" "${celluloid_player_args[@]}" \
   || fail "Celluloid fallback was not launched full-screen"
@@ -368,4 +371,4 @@ printf 'PASS: %d MaxNet menu launchers plus Home work in Chromium and decorated 
   "${#features[@]}"
 printf 'PASS: unknown features and unsupported browsers fail safely.\n'
 printf 'PASS: Firefox account setup also opens as a decorated, non-fullscreen window.\n'
-printf 'PASS: first-run intro uses mpv or Celluloid before setup, once only.\n'
+printf 'PASS: first-run account and theme setup precede the mpv/Celluloid intro, once only.\n'

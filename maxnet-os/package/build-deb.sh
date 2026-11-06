@@ -22,6 +22,8 @@ install -Dm644 "$ROOT/share/branding/maxnet-user-logo.png" \
   "$STAGE/usr/share/maxnet-os/maxnet-user-logo.png"
 install -Dm644 "$ROOT/share/themes/maxos-installer.css" \
   "$STAGE/usr/share/maxnet-os/maxos-installer.css"
+install -Dm644 "$ROOT/share/branding/maxos-installer-wallpaper.svg" \
+  "$STAGE/usr/share/maxnet-os/maxos-installer-wallpaper.svg"
 install -Dm644 "$ROOT/share/ubiquity/plugins/maxos-account.py" \
   "$STAGE/usr/lib/ubiquity/plugins/maxos-account.py"
 install -Dm644 "$ROOT/share/ubiquity/gtk/stepMaxosAccount.ui" \

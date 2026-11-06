@@ -118,8 +118,8 @@ set_system_theme() {
 
 choose_system_theme() {
   command -v zenity >/dev/null 2>&1 || {
-    printf '%s\n' "Install zenity to choose a MaxOS theme from the desktop." >&2
-    exit 1
+    printf '%s\n' "Zenity is unavailable; continuing with the current MaxOS theme." >&2
+    return 0
   }
   theme_slug
   local selected
@@ -135,8 +135,8 @@ choose_system_theme() {
     "$(theme_selected vista)" vista "Windows Vista" \
     "$(theme_selected vista-dark)" vista-dark "Windows Vista dark" \
     "$(theme_selected gold)" gold "Gold picture frame" \
-    "$(theme_selected silver)" silver "Silver picture frame")" || exit 0
-  [[ -n "$selected" ]] || exit 0
+    "$(theme_selected silver)" silver "Silver picture frame")" || return 0
+  [[ -n "$selected" ]] || return 0
   set_system_theme "$selected"
 }
 
@@ -161,9 +161,6 @@ play_first_run_intro() {
 }
 
 first_run() {
-  if [[ ! -e "$setup_complete" ]]; then
-    play_first_run_intro
-  fi
   apply_start_menu_icon
   [[ -e "$setup_complete" ]] && {
     [[ -e "$theme_config" ]] || choose_system_theme
@@ -173,22 +170,39 @@ first_run() {
   if command -v zenity >/dev/null 2>&1 &&
      zenity --question \
        --title="MaxOS setup" \
-       --text="Sign in to MaxNet to sync your site theme, background, account permissions, and available apps. Your MaxNet password and local OS PIN stay separate. Site permissions never grant Linux administrator or sudo access." \
+       --text="Sign in to MaxNet to sync your site theme, background, and available apps before the welcome video. Your MaxNet password and local OS password stay separate. Site permissions never grant Linux administrator or sudo access." \
        --ok-label="Connect MaxNet" \
        --cancel-label="Continue offline"; then
     if open_account_setup; then
-      zenity --info --title="MaxOS setup" \
-        --text="Finish sign-in in the MaxNet window and choose Sync my MaxNet settings. You can use MaxOS offline while setup continues." || true
+      if zenity --question \
+        --title="MaxOS account setup" \
+        --text="Finish signing in and approve the settings sync in the MaxNet window, then return here and choose Continue. Choose Cancel to use local settings and continue offline." \
+        --ok-label="Continue" \
+        --cancel-label="Continue offline"; then
+        if [[ -r "$account_config" ]]; then
+          zenity --info --title="MaxOS setup" \
+            --text="Your MaxNet settings are ready. The welcome video will play next." || true
+        else
+          rm -f "$pending_sync"
+          zenity --info --title="MaxOS setup" \
+            --text="No MaxNet settings were synced. MaxOS will use local settings and continue offline." || true
+        fi
+      else
+        rm -f "$pending_sync"
+      fi
     else
+      rm -f "$pending_sync"
       zenity --warning --title="MaxOS setup" \
         --text="A browser could not be opened. You can continue offline and sync your MaxNet account later from the Start menu." || true
     fi
   fi
 
+  [[ -e "$theme_config" ]] || choose_system_theme
+
   install -d -m 700 "$config_dir"
   (umask 077; : > "$setup_complete")
   chmod 600 "$setup_complete"
-  [[ -e "$theme_config" ]] || choose_system_theme
+  play_first_run_intro
 }
 
 prepare_firefox_app_profile() {

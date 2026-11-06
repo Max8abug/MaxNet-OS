@@ -51,6 +51,7 @@ jobs:
           grep -Fq 'usr/lib/ubiquity/plugins/maxos-account.py' <<< "$package_listing"
           grep -Fq 'usr/share/ubiquity/gtk/stepMaxosAccount.ui' <<< "$package_listing"
           grep -Fq 'usr/share/maxnet-os/maxos-installer.css' <<< "$package_listing"
+          grep -Fq 'usr/share/maxnet-os/maxos-installer-wallpaper.svg' <<< "$package_listing"
           grep -Fq 'usr/share/icons/hicolor/scalable/apps/maxnet.svg' <<< "$package_listing"
           grep -Fq 'usr/share/icons/hicolor/128x128/apps/maxnet-os-start.png' <<< "$package_listing"
           control_dir="$(mktemp -d)"
