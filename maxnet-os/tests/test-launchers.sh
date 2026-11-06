@@ -87,8 +87,8 @@ case "$1" in
   writable) exit 0 ;;
   get)
     case "$3" in
-      app-menu-label) printf "'Menu'\n" ;;
-      app-menu-icon-name) printf "'start-here'\n" ;;
+      app-menu-label) printf "'%s'\n" "${MAXOS_TEST_GSETTINGS_LABEL:-Menu}" ;;
+      app-menu-icon-name) printf "'%s'\n" "${MAXOS_TEST_GSETTINGS_ICON:-start-here}" ;;
       *) exit 1 ;;
     esac
     ;;
@@ -259,6 +259,42 @@ for _ in {1..50}; do
   sleep 0.02
 done
 [[ -s "$start_menu_refresh" ]] || fail "Cinnamon was not refreshed after Start branding changed"
+
+applet_settings_dir="$tmp_dir/config-applet-icon/cinnamon/spices/menu@cinnamon.org"
+applet_settings_file="$applet_settings_dir/0.json"
+mkdir -p "$applet_settings_dir"
+cat > "$applet_settings_file" <<'JSON'
+{
+  "menu-custom": true,
+  "menu-icon": "linuxmint-logo",
+  "menu-icon-size": 32,
+  "menu-label": "Menu"
+}
+JSON
+applet_settings_refresh="$tmp_dir/applet-settings-refresh"
+MAXOS_TEST_GSETTINGS="$tmp_dir/applet-settings-gsettings" \
+  MAXOS_TEST_CINNAMON="$applet_settings_refresh" \
+  MAXOS_TEST_GSETTINGS_LABEL="Start" \
+  MAXOS_TEST_GSETTINGS_ICON="maxnet-os-start" \
+  MAXNET_URL="https://moonbat.ddns.net" \
+  DISPLAY=:1 \
+  XDG_CONFIG_HOME="$tmp_dir/config-applet-icon" \
+  XDG_DATA_HOME="$tmp_dir/data-applet-icon" \
+  PATH="$start_menu_path" \
+  "$BASH" "$launcher" --refresh-start-menu \
+  || fail "The custom Cinnamon menu icon could not be replaced"
+python3 - "$applet_settings_file" <<'PY' || fail "The custom Mint menu icon was not replaced"
+import json
+import sys
+from pathlib import Path
+settings = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+if settings.get("menu-custom") is not True:
+    raise SystemExit(1)
+if settings.get("menu-icon") != "maxnet-os-start" or settings.get("menu-label") != "Start":
+    raise SystemExit(1)
+PY
+[[ -s "$applet_settings_refresh" ]] \
+  || fail "Cinnamon was not refreshed after replacing its custom Mint menu icon"
 
 account_setup_args="$tmp_dir/account-setup-args"
 account_setup_data="$tmp_dir/data-account-setup"
