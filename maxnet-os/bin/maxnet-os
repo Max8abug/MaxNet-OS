@@ -307,41 +307,45 @@ apply_start_menu_icon() {
   # Linux Mint can keep a per-applet custom icon, which overrides the global
   # app-menu-icon-name setting. Make every menu applet instance use the current
   # MaxNet logo, and set its label explicitly as well.
-  local applet_settings_dir applet_settings_changed
-  applet_settings_dir="${XDG_CONFIG_HOME:-$HOME/.config}/cinnamon/spices/menu@cinnamon.org"
-  if applet_settings_changed="$(python3 - "$applet_settings_dir" "$icon_name" <<'PY'
+  local applet_settings_changed
+  local -a applet_settings_dirs
+  applet_settings_dirs=(
+    "${XDG_CONFIG_HOME:-$HOME/.config}/cinnamon/spices/menu@cinnamon.org"
+    "$HOME/.cinnamon/configs/menu@cinnamon.org"
+  )
+  if applet_settings_changed="$(python3 - "$icon_name" "${applet_settings_dirs[@]}" <<'PY'
 import json
 import os
 import stat
 import sys
 from pathlib import Path
 
-settings_dir = Path(sys.argv[1])
-icon_name = sys.argv[2]
+icon_name = sys.argv[1]
 changed = False
-for path in settings_dir.glob("*.json"):
-    try:
-        original = path.read_text(encoding="utf-8")
-        settings = json.loads(original)
-    except (OSError, json.JSONDecodeError):
-        continue
-    if not isinstance(settings, dict):
-        continue
-    desired = {
-        "menu-custom": True,
-        "menu-icon": icon_name,
-        "menu-label": "Start",
-    }
-    if any(settings.get(key) != value for key, value in desired.items()):
-        settings.update(desired)
-        temporary = path.with_name(path.name + ".maxos-tmp")
-        temporary.write_text(
-            json.dumps(settings, ensure_ascii=False, indent=2) + "\n",
-            encoding="utf-8",
-        )
-        os.chmod(temporary, stat.S_IMODE(path.stat().st_mode))
-        os.replace(temporary, path)
-        changed = True
+for settings_dir in map(Path, sys.argv[2:]):
+    for path in settings_dir.glob("*.json"):
+        try:
+            original = path.read_text(encoding="utf-8")
+            settings = json.loads(original)
+        except (OSError, json.JSONDecodeError):
+            continue
+        if not isinstance(settings, dict):
+            continue
+        desired = {
+            "menu-custom": True,
+            "menu-icon": icon_name,
+            "menu-label": "Start",
+        }
+        if any(settings.get(key) != value for key, value in desired.items()):
+            settings.update(desired)
+            temporary = path.with_name(path.name + ".maxos-tmp")
+            temporary.write_text(
+                json.dumps(settings, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            os.chmod(temporary, stat.S_IMODE(path.stat().st_mode))
+            os.replace(temporary, path)
+            changed = True
 print("changed" if changed else "")
 PY
   )"; then

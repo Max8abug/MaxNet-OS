@@ -262,7 +262,9 @@ done
 
 applet_settings_dir="$tmp_dir/config-applet-icon/cinnamon/spices/menu@cinnamon.org"
 applet_settings_file="$applet_settings_dir/0.json"
-mkdir -p "$applet_settings_dir"
+legacy_applet_settings_dir="$tmp_dir/home-applet-icon/.cinnamon/configs/menu@cinnamon.org"
+legacy_applet_settings_file="$legacy_applet_settings_dir/1.json"
+mkdir -p "$applet_settings_dir" "$legacy_applet_settings_dir"
 cat > "$applet_settings_file" <<'JSON'
 {
   "menu-custom": true,
@@ -271,6 +273,7 @@ cat > "$applet_settings_file" <<'JSON'
   "menu-label": "Menu"
 }
 JSON
+cp "$applet_settings_file" "$legacy_applet_settings_file"
 applet_settings_refresh="$tmp_dir/applet-settings-refresh"
 MAXOS_TEST_GSETTINGS="$tmp_dir/applet-settings-gsettings" \
   MAXOS_TEST_CINNAMON="$applet_settings_refresh" \
@@ -278,12 +281,24 @@ MAXOS_TEST_GSETTINGS="$tmp_dir/applet-settings-gsettings" \
   MAXOS_TEST_GSETTINGS_ICON="maxnet-os-start" \
   MAXNET_URL="https://moonbat.ddns.net" \
   DISPLAY=:1 \
+  HOME="$tmp_dir/home-applet-icon" \
   XDG_CONFIG_HOME="$tmp_dir/config-applet-icon" \
   XDG_DATA_HOME="$tmp_dir/data-applet-icon" \
   PATH="$start_menu_path" \
   "$BASH" "$launcher" --refresh-start-menu \
   || fail "The custom Cinnamon menu icon could not be replaced"
 python3 - "$applet_settings_file" <<'PY' || fail "The custom Mint menu icon was not replaced"
+import json
+import sys
+from pathlib import Path
+settings = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+if settings.get("menu-custom") is not True:
+    raise SystemExit(1)
+if settings.get("menu-icon") != "maxnet-os-start" or settings.get("menu-label") != "Start":
+    raise SystemExit(1)
+PY
+python3 - "$legacy_applet_settings_file" <<'PY' \
+  || fail "The legacy Cinnamon custom Mint menu icon was not replaced"
 import json
 import sys
 from pathlib import Path
